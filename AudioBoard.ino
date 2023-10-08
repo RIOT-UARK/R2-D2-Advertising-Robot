@@ -1,3 +1,7 @@
+#include <SD.h>
+#include <sd_defines.h>
+#include <sd_diskio.h>
+
 //This code uses an AIThinker Audio Kit V2.2 Board to recieve signals from either the sounboard microcontroller or the 
 //reciever microcontroller within R2D2, and then parses those commands to play an audio clip stored on its SD card.
 
@@ -37,36 +41,55 @@ AudioPlayer player(source, kit, decoder);
 // callback function that will be executed when data is received
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&packet, incomingData, sizeof(packet));
-  Serial.print("Bytes received: ");
-  Serial.println(len);
-  Serial.print("Message: ");
-  Serial.println(packet.a);
+//  Serial.print("Bytes received: ");
+//  Serial.println(len);
+//  Serial.print("Message: ");
+//  Serial.println(packet.a);
+//  Serial.println(digitalRead(19));
 
   switch (packet.a) {
     case 0:
       if (excite % 2 == 1) {
         player.setPath("/exci0.mp3");
+        digitalWrite(18, HIGH);
+        delay(1250);
+        digitalWrite(18, LOW);
       }
       else {
           player.setPath("/exci1.mp3");
+          digitalWrite(18, HIGH);
+          delay(1940);
+          digitalWrite(18, LOW);
         }
         excite++;
       break;
     case 1:
       if (worr % 2 == 1) {
         player.setPath("/worr0.mp3");
+        digitalWrite(18, HIGH);
+        delay(1420);
+        digitalWrite(18, LOW);
       }
       else {
         player.setPath("/worr1.mp3");
+        digitalWrite(18, HIGH);
+        delay(1380);
+        digitalWrite(18, LOW);
       }
         worr++;
       break;
     case 2:
       if (scre % 2 == 1) {
         player.setPath("/scre0.mp3");
+        digitalWrite(18, HIGH);
+        delay(1050);
+        digitalWrite(18, LOW);
       }
       else {
         player.setPath("/scre1.mp3");
+        digitalWrite(18, HIGH);
+        delay(1290);
+        digitalWrite(18, LOW);
       }
         scre++;
 
@@ -74,18 +97,30 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     case 3:
       if (ackn % 2 == 1) {
         player.setPath("/ackn0.mp3");
+        digitalWrite(18, HIGH);
+        delay(4400);
+        digitalWrite(18, LOW);
       }
       else {
         player.setPath("/ackn1.mp3");
+        digitalWrite(18, HIGH);
+        delay(2120);
+        digitalWrite(18, LOW);
       }
         ackn++;
       break;
     case 4:
       if (chat % 2 == 1) {
         player.setPath("/chat0.mp3");
+        digitalWrite(18, HIGH);
+        delay(1000);
+        digitalWrite(18, LOW);
       }
       else {
         player.setPath("/chat1.mp3");
+        digitalWrite(18, HIGH);
+        delay(1200);
+        digitalWrite(18, LOW);
       }
         chat++;
       break;
@@ -99,6 +134,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
       break;
   }
+  
 }
 
 
@@ -118,6 +154,7 @@ void startStop(bool, int, void*) {
 void setup() {
   Serial.begin(115200);
   AudioLogger::instance().begin(Serial, AudioLogger::Info);
+  pinMode(18, OUTPUT);
 
   WiFi.mode(WIFI_STA);
 
@@ -157,7 +194,7 @@ void setup() {
 void loop() {
   player.copy();
   kit.processActions();
-
+Serial.println(digitalRead(18));
 
 
 }
