@@ -18,6 +18,7 @@
 
 //Create a struct that holds the ESP NOW packets
 typedef struct struct_message {
+    String recip;
     int a;
 } struct_message;
 
@@ -47,96 +48,97 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 //  Serial.println(packet.a);
 //  Serial.println(digitalRead(19));
 
-  switch (packet.a) {
-    case 0:
-      if (excite % 2 == 1) {
-        player.setPath("/exci0.mp3");
-        digitalWrite(18, HIGH);
-        delay(1250);
-        digitalWrite(18, LOW);
-      }
-      else {
-          player.setPath("/exci1.mp3");
+  if (packet.recip == "audi") {
+    switch (packet.a) {
+      case 0:
+        if (excite % 2 == 1) {
+          player.setPath("/exci0.mp3");
           digitalWrite(18, HIGH);
-          delay(1940);
+          delay(1250);
           digitalWrite(18, LOW);
         }
-        excite++;
-      break;
-    case 1:
-      if (worr % 2 == 1) {
-        player.setPath("/worr0.mp3");
-        digitalWrite(18, HIGH);
-        delay(1420);
-        digitalWrite(18, LOW);
-      }
-      else {
-        player.setPath("/worr1.mp3");
-        digitalWrite(18, HIGH);
-        delay(1380);
-        digitalWrite(18, LOW);
-      }
-        worr++;
-      break;
-    case 2:
-      if (scre % 2 == 1) {
-        player.setPath("/scre0.mp3");
-        digitalWrite(18, HIGH);
-        delay(1050);
-        digitalWrite(18, LOW);
-      }
-      else {
-        player.setPath("/scre1.mp3");
-        digitalWrite(18, HIGH);
-        delay(1290);
-        digitalWrite(18, LOW);
-      }
-        scre++;
+        else {
+            player.setPath("/exci1.mp3");
+            digitalWrite(18, HIGH);
+            delay(1940);
+            digitalWrite(18, LOW);
+          }
+          excite++;
+        break;
+      case 1:
+        if (worr % 2 == 1) {
+          player.setPath("/worr0.mp3");
+          digitalWrite(18, HIGH);
+          delay(1420);
+          digitalWrite(18, LOW);
+        }
+        else {
+          player.setPath("/worr1.mp3");
+          digitalWrite(18, HIGH);
+          delay(1380);
+          digitalWrite(18, LOW);
+        }
+          worr++;
+        break;
+      case 2:
+        if (scre % 2 == 1) {
+          player.setPath("/scre0.mp3");
+          digitalWrite(18, HIGH);
+          delay(1050);
+          digitalWrite(18, LOW);
+        }
+        else {
+          player.setPath("/scre1.mp3");
+          digitalWrite(18, HIGH);
+          delay(1290);
+          digitalWrite(18, LOW);
+        }
+          scre++;
 
-      break;
-    case 3:
-      if (ackn % 2 == 1) {
-        player.setPath("/ackn0.mp3");
-        digitalWrite(18, HIGH);
-        delay(4400);
-        digitalWrite(18, LOW);
-      }
-      else {
-        player.setPath("/ackn1.mp3");
-        digitalWrite(18, HIGH);
-        delay(2120);
-        digitalWrite(18, LOW);
-      }
-        ackn++;
-      break;
-    case 4:
-      if (chat % 2 == 1) {
-        player.setPath("/chat0.mp3");
-        digitalWrite(18, HIGH);
-        delay(1000);
-        digitalWrite(18, LOW);
-      }
-      else {
-        player.setPath("/chat1.mp3");
-        digitalWrite(18, HIGH);
-        delay(1200);
-        digitalWrite(18, LOW);
-      }
-        chat++;
-      break;
-    case 5:
+        break;
+      case 3:
+        if (ackn % 2 == 1) {
+          player.setPath("/ackn0.mp3");
+          digitalWrite(18, HIGH);
+          delay(4400);
+          digitalWrite(18, LOW);
+        }
+        else {
+          player.setPath("/ackn1.mp3");
+          digitalWrite(18, HIGH);
+          delay(2120);
+          digitalWrite(18, LOW);
+        }
+          ackn++;
+        break;
+      case 4:
+        if (chat % 2 == 1) {
+          player.setPath("/chat0.mp3");
+          digitalWrite(18, HIGH);
+          delay(1000);
+          digitalWrite(18, LOW);
+        }
+        else {
+          player.setPath("/chat1.mp3");
+          digitalWrite(18, HIGH);
+          delay(1200);
+          digitalWrite(18, LOW);
+        }
+          chat++;
+        break;
+      case 5:
 
-      break;
-    case 6:
+        break;
+      case 6:
 
-      break;
-    case 7:
+        break;
+      case 7:
 
-      break;
-  }
+        break;
+    }
   
+  }
 }
-
 
 
 void next(bool, int, void*) {
