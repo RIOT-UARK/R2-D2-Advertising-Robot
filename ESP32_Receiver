@@ -6,6 +6,8 @@
 // value to only one controller. 
 
 //TODO: Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
+#include <esp_now.h>
+#include <WiFi.h>
 
 // Reciever to ESP32 pinout
 #define CH1 2
@@ -24,6 +26,36 @@
 #define RIGHTDRIVE 26
 #define DOMEMOTOR 27
 #define MOTOR4 32
+
+
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+//Create a struct that holds the ESP NOW packets
+typedef struct struct_message {
+    String recip;
+    int a;
+} struct_message;
+
+//packet to send
+struct_message packet;
+//packet that is received
+struct_message incomingReadings;
+
+esp_now_peer_info_t peerInfo;
+
+//Callback function when data is received
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+  memcpy(&packet, incomingData, sizeof(packet));
+
+    //This Receiver microcontroller will be receiving data from the computer vision Camera.
+    //Todo: add code to receive input packets from the camera and send commands to the Dome motor. 
+}
+//Callback when data is sent
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+  Serial.print("\r\nLast Packet Send Status:\t");
+  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+}
+
 
 // Ints to represent values from sticks and pots
 int ch1Value, ch2Value, ch3Value, ch4Value, ch5Value, ch6Value;
@@ -57,7 +89,27 @@ void setup(){
   // Set up serial monitor
   Serial.begin(19200);
   
+    WiFi.mode(WIFI_STA);
 
+    if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+
+  //Register callback functions
+  esp_now_register_send_cb(OnDataSent);
+  esp_now_register_recv_cb(OnDataRecv);
+
+  //Register peer network
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  peerInfo.channel = 0;  
+  peerInfo.encrypt = false;
+
+  //Add peer network
+  if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
   
   // Set all pins as inputs
   pinMode(CH1, INPUT);
@@ -74,6 +126,9 @@ void setup(){
   //Figure out the correct PWM frequencies and set up the output pins with
   // ledcSetup(ledChannel, freq, resolution); and
   // ledcAttachPin(ledPin, ledChannel);
+
+  //As of now, the only recipient of messages from this board will be the Audio board.
+  packet.recip = "audi";
 }
  
  
@@ -111,6 +166,9 @@ void loop() {
       if (ch7Value == 0  && ch8Value == 1 && ch9Value == 0 && ch10Value == 0) {       //EMOTE MODE
     //Move joysticks all the way to one direction to trigger an emote.
     //Break emote functions out into functions above the main loop
+
+    //if emote 'a' is selected -> packet.a = 2;
+    //then -> esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
   }
 
   //Room for 2 more 'modes' 
