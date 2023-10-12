@@ -4,12 +4,13 @@
 //This code controls the Soundboard, attached to the RC Remote used to control R2D2. This soundboard uses ESPNOW to send commands to R2's audioboard,
 //in order to play audio.
 
-uint8_t broadcastAddress[] = {0xB8, 0xD6, 0x1A, 0x59, 0xAB, 0x50};
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 unsigned int debounceTime = 0;
 
 //Struct for ESPNOW data packet
 typedef struct struct_message {
+  String recip;
   int a;
 } struct_message;
 
@@ -56,15 +57,17 @@ void setup() {
   pinMode(2, INPUT);
   pinMode(4, INPUT);
 
-pinMode(22, OUTPUT); //LED
+  pinMode(22, OUTPUT); //LED
 
-digitalWrite(22, HIGH);
+  digitalWrite(22, HIGH);
+
+  //The soundboard will only be sending data to the Audio Player Board
+  packet.recip = "audi";
 }
 
 
 
 void loop() {
-  // Shut up, I know it's copy-paste code
 
   if ((digitalRead(21) == HIGH) && ((millis() - debounceTime) > 2000)) {
     packet.a = 0;
