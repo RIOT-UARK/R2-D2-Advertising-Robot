@@ -8,8 +8,8 @@
 //Create Matrix Objects
 
 Adafruit_8x16minimatrix frontMatrix1 = Adafruit_8x16minimatrix();
-//Adafruit_8x16minimatrix frontMatrix2 = Adafruit_8x16minimatrix();
-//Adafruit_8x16minimatrix backMatrix1 = Adafruit_8x16minimatrix();
+Adafruit_8x16minimatrix frontMatrix2 = Adafruit_8x16minimatrix();
+Adafruit_8x16minimatrix backMatrix1 = Adafruit_8x16minimatrix();
 //Adafruit_8x16minimatrix backMatrix2 = Adafruit_8x16minimatrix();
 
 void setup() {
@@ -17,9 +17,9 @@ void setup() {
   
   //Initialize Matricies
   
-  frontMatrix1.begin(0x70);  // pass in the address
-  //frontMatrix2.begin(0x71);
-  //backMatrix1.begin(0x72);
+  frontMatrix1.begin(0x70);  // pass in the addresses
+  frontMatrix2.begin(0x71);
+  backMatrix1.begin(0x72);
   //backMatrix2.begin(0x73);
 }
 
@@ -29,14 +29,14 @@ bool isOn;
 void loop() {
 
   frontMatrix1.clear();
-  //frontMatrix2.clear();
-  //backMatrix1.clear();
+  frontMatrix2.clear();
+  backMatrix1.clear();
   //backMatrix2.clear();
 
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 16; j++) {
       randNumber = esp_random();
-      if (randNumber % 4 == 0) {
+      if (randNumber % 4 == 0) {  //There is a 1 in 4 chance that any LED in the matrix will be lit for any 'frame'
         isOn = true;
       }
       else {
@@ -47,12 +47,11 @@ void loop() {
   }
   frontMatrix1.writeDisplay();
 
-  /*
 
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 16; j++) {
       randNumber = esp_random();
-      if (randNumber % 4 == 0) {
+      if (randNumber % 4 == 0) { //There is a 1 in 4 chance that any LED in the matrix will be lit for any 'frame'
         isOn = true;
       }
       else {
@@ -62,7 +61,20 @@ void loop() {
     }
   }
   frontMatrix2.writeDisplay();
-  */
+
+    for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 16; j++) {
+      randNumber = esp_random();  //There is a 1 in 4 chance that any LED in the matrix will be lit for any 'frame'
+      if (randNumber % 4 == 0) {
+        isOn = true;
+      }
+      else {
+        isOn = false;
+      }
+      backMatrix1.drawPixel(i, j, isOn);
+    }
+  }
+  backMatrix1.writeDisplay();
 
   // ....e.g.
 
