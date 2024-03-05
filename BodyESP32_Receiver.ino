@@ -28,9 +28,6 @@
 #define CH10 23
 
 
-
-
-
 //Global Variables for interrupt functions for timing PWM signals.
 //Sadly, you cant pass arguments in to interrupt functions, so I have to have
 //different global variables and interrupt functions for each pin.
@@ -74,11 +71,16 @@ int lastVolumeSent = 0;
 // Bool to represent switch value
 bool ch7Value;
 bool ch8Value;
-
 bool ch10Value;
 // Ints to be sent to Motor Controllers
 int LeftDriveValue, RightDriveValue, DomeMotorValue, Motor4Value;
 
+bool projectorBulb = false;
+unsigned long lastProjectorStatus = 0;
+
+bool pamphletDispenser = false;
+bool turnPDOnFlag = false;
+unsigned long lastPamphletDispenserStatus = 0;
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -102,6 +104,14 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
     //This Receiver microcontroller will be receiving data from the computer vision Camera.
     //Todo: add code to receive input packets from the camera and send commands to the Dome motor. 
+
+    if (packet.a ==6) {
+      projectorBulb = !projectorBulb;
+    }
+    if (packet.a == 7) {
+      pamphletDispenser = !pamphletDispenser;
+      turnPDOnFlag = true;
+    }
 }
 //Callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -304,7 +314,10 @@ void setup(){
   pinMode(27, OUTPUT);
   ledcAttachPin(27, 1);
   ledcSetup(1, 1000, 8);
-  
+
+
+ pinMode(32, OUTPUT); //Projector Bulb MOSFET Control
+ pinMode(33, OUTPUT); //Pamphlet Dispenser Signal
 }
 
 
@@ -439,6 +452,39 @@ void loop() {
 
   }
 
+  //If projectorBulb == true, close MOSFET switch to turn on bulb.
+  if (projectorBulb) {
+    digitalWrite(32, HIGH);
+  }
+  else {
+    digitalWrite(32, LOW);
+  }
+
+  if (millis() - lastProjectorStatus > 5000) {
+    if (projectorBulb) {
+      packet.a = 21;
+    }
+    else {
+      packet.a = 20;
+    }
+    packet.recip = "boar";
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+    lastProjectorStatus = millis();
+  }
+
+  if (pamphletDispenser && turnPDOnFlag && (millis() - lastPamphletDispenserStatus > 1000)) {
+    digitalWrite(33, HIGH);
+    lastPamphletDispenserStatus  = millis();
+    turnPDOnFlag = false;
+  }
+  else if (pamphletDispenser && !turnPDOnFlag && (millis() - lastPamphletDispenserStatus > 1000)) {
+    digitalWrite(33, LOW);
+    pamphletDispenser = false;
+  }
+
+
+
+//Serial.println(projectorBulb);
   //Serial.println(millis() - time);
   //Room for 2 more 'modes' 
   // Print to Serial Monitor
