@@ -4,15 +4,22 @@
   then uses that to control the speed and direction of the Dome Motor.
 
   PINOUT
-  Arduino -> PROK Motor Controller
+Arduino Uno -> PROK Motor Controller
   
   5V -> 5V
+  5V -> 5V
+  GND -> GND
   GND -> GND
   Pin 2 -> IN1
-  Pin 3 -> ENA
+  Pin 3 -> ENA1
   Pin 4 -> IN2
-
-  RX(PIN 0) -> ESP32 Receiver Board Pin TX 
+  Pin 6 -> ENA2
+  Pin 7 -> IN3
+  Pin 8 -> IN4
+  
+Arduino Uno -> ESP32 Receiver Board
+  RX(PIN 0) -> Pin TX 
+  Pin 5 -> Pin 33
 
   Using an Arduino Uno was necessary because the PROK Motor controller would only work with the Uno's 5V logic,
   and not an ESP32's 3V logic.
@@ -23,16 +30,24 @@
 unsigned long timeOfLastRec;
 int driveValue;
 
+unsigned long timeOfLastPam = 0; //time of last pamphlet
+bool forwardReverse = true; //true = pamphlet dispenser forward, false = backwards
+bool pamReady = true;
+
 void setup() {
 
   pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
   pinMode(4, OUTPUT);
+  pinMode(5, INPUT);
+  pinMode(6, OUTPUT); //ENA
+  pinMode(7, OUTPUT); //IN3
+  pinMode(8, OUTPUT); //IN4
 
   Serial.begin(115200);
 
 
- delay(2000); //Delay because the ESP32 will spew garbage over serial upon startup.
+ delay(3000); //Delay because the ESP32 will spew garbage over serial upon startup.
 }
 
 void loop() {
@@ -70,4 +85,24 @@ void loop() {
   if ((millis() - timeOfLastRec) > 200) {
   analogWrite(3, 0);
   }
+
+  if (pamReady && digitalRead(5) == HIGH && (millis() - timeOfLastPam > 5000)) {
+    digitalWrite(7, LOW);
+    digitalWrite(8, HIGH);
+    analogWrite(6, 60);
+    timeOfLastPam = millis();
+    pamReady = false;
+  }
+  else if (millis() - timeOfLastPam > 1500 && millis() - timeOfLastPam < 3300) {
+    digitalWrite (7, HIGH);
+    digitalWrite (8, LOW);
+    analogWrite(6, 60);
+  }
+  else if (millis() - timeOfLastPam > 3300) {
+    digitalWrite(7, LOW);
+    digitalWrite(8, LOW);
+    analogWrite(6, 0);
+    pamReady = true;
+  }
+
 }
