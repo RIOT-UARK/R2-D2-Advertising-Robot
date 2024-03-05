@@ -22,6 +22,20 @@ struct_message packet;
 
 esp_now_peer_info_t peerInfo;
 
+//Callback function when data is received
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+  memcpy(&packet, incomingData, sizeof(packet));
+
+    if (packet.recip == "boar") {
+      if (packet.a == 20) {
+        //Set LED low
+      }
+      else if (packet.a == 21) {
+        //Set LED High
+      }
+    }
+}
+
 //ESPNOW func to be called every time data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   Serial.print("\r\nLast Packet Send Status:\t");
