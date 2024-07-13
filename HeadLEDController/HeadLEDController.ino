@@ -21,14 +21,14 @@
 Adafruit_NeoPixel front(LED_COUNT, FRONT_PSI_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel back(LED_COUNT, BACK_PSI_PIN, NEO_GRB + NEO_KHZ800);
 
-long time = 1; 
-long frontDelayTime = 0;
-long backDelayTime = 0;
-int frontColorSelection;
-int backColorSelection;
-int frontLastColor;
-int backLastColor;
-bool talkFastFlag = false;
+long time = 1;              /* current time                                 */
+long frontDelayTime = 0;    /* time until front psi light next color change */
+long backDelayTime = 0;     /* time until rear psi light next color change  */
+int frontColorSelection;    /* selected color for front psi light           */
+int backColorSelection;     /* selected color for rear psi light            */
+int frontLastColor;         /* previously selected front psi color          */
+int backLastColor;          /* previously selected rear psi color           */
+bool talkFastFlag = false;  /* flag when front psi should rapidly change    */
 
 int r, g, b;
 
@@ -41,7 +41,7 @@ void setup() {
   front.show();   // Turn OFF LEDs all for boot
   back.show();
 
-  front.setBrightness(50);
+  front.setBrightness(50); // uint8 brightness value (0-255)
   back.setBrightness(50);
 
   pinMode(PIN_7, INPUT);
@@ -49,24 +49,24 @@ void setup() {
 }
 
 //TODO: PROVIDE GOOD EXPLANATION OF HOW PIN 7 is set and how that effects speed of talk
+/* A signal of HIGH will be received on PIN_7 if */
 
 void loop() {
   time = millis();
-  frontColorSelection = ranom(10); //Randomly select color of light for front psi. 40% chance light will be red, 40% it will be blue, and 10% it will be white.
-  backColorSelection = random(10); //Back psi. 40% red, 40% green, 10% yellow
+  frontColorSelection = random(10); // Randomly select color of light for front psi. 40% chance light will be red, 40% it will be blue, and 10% it will be white.
+  backColorSelection = random(10); // Back psi. 40% red, 40% green, 10% yellow
 
-  //If delayTime set in frontTalk has passed and PIN_7 is LOW:
+  // If delayTime set in frontTalk has passed and PIN_7 is LOW:
   if ((time - frontDelayTime > 0) && (digitalRead(PIN_7) != HIGH)) {
     talkFastFlag = false;
     frontTalk(1800, 5000, front, frontDelayTime, frontLastColor);
-    Serial.print("FST:  delaytime: ");
-    Serial.print(frontDelayTime); Serial.print(" time: "); Serial.println(time);
   }
-  //If PIN_7 is HIGH and R2 isn't talking fast.
+  // If PIN_7 is HIGH and R2 isn't talking fast.
   else if (digitalRead(PIN_7) == HIGH && !talkFastFlag) {
     talkFastFlag = true;
     frontDelayTime = millis() - 10;
     frontTalk(200, 450, front, frontDelayTime, frontLastColor);
+  // Keep talking fast if PIN_7 is still HIGH.
   }
   else if ((time - frontDelayTime > 0) && digitalRead(7) == HIGH) { //TODO: Still switching very quickly *sometimes* when in fast talk mode
     frontTalk(200, 450, front, frontDelayTime, frontLastColor);
