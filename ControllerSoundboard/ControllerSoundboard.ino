@@ -1,28 +1,50 @@
-//This code controls the Soundboard, attached to the RC Remote used to control R2D2. This soundboard uses ESPNOW to send commands to R2's audioboard,
-//in order to play audio.
+/*----------------------------------------------------------------------------
+
+    ControllerSoundboard.ino
+
+    DESCRIPTION:
+      This code controls the Soundboard, attached to the RC Remote used to
+      control R2D2. This soundboard uses ESPNOW to send commands to R2's
+      audioboard, in order to play audio.
+
+    MICROCONTROLLER:
+      ESP-32
+
+-----------------------------------------------------------------------------*/
 
 #include <esp_now.h>
 #include <WiFi.h>
 #include <esp_sleep.h>
+#include <definitions.h>
 
-
+// ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+
 unsigned int debounceTime = 0;
-unsigned int lastSend = 0;
-bool isModemSleep = false;
+unsigned int lastSend = 0;        /* time of last packet sent   */
+bool isModemSleep = false;        /* flag for modem timeout     */
 
 //Struct for ESPNOW data packet
 typedef struct struct_message {
   String recip;
   int a;
+  int vol;
 } struct_message;
 
+//packet to send
 struct_message packet;
 
 esp_now_peer_info_t peerInfo;
 
-//Callback function when data is received
+/*----------------------------------------------------------------------
+
+    OnDataRecv
+
+      Callback function when data is received
+
+----------------------------------------------------------------------*/
+
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&packet, incomingData, sizeof(packet));
 
@@ -38,8 +60,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
 //ESPNOW func to be called every time data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  Serial.print("\r\nLast Packet Send Status:\t");
-  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  //Serial.print("\r\nLast Packet Send Status:\t");
+  //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
 
 void setModemSleep();

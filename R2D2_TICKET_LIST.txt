@@ -23,3 +23,19 @@ In BodyESP32_Receiver, implement dome rotation control.
 Ensure that channel2 value of ~255 is achievable in BodyESP32_Receiver
 
 //TODO: HeadLEDController.ino PROVIDE GOOD EXPLANATION OF HOW PIN 7 is set and how that effects speed of talk
+
+TEST ADDED CODE: HeadLEDController. Replaced many calls to millis() with a time variable.
+
+LOW PRIORITY: Reimplement HeadLEDController back psi fading w/ improvements
+	HeadLEDController: TEST ADDED CODE: for fading, now updating brightess every 15ms
+
+Add microcontrollers to the file descriptions of every file.
+
+Rename "definitions.h" to R2D2_LIB.h
+
+<ALL> move ESPNOW packet struct into R2D2_LIB.h
+
+ControllerSoundboard/BodyESP32_Receiver: investigate why 'incomingReadings' espnow packet variable isnt being used for OnDataRecv callback functions.
+[Seems to be Corrupting packets to be sent out]
+
+

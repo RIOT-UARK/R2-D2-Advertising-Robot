@@ -10,6 +10,9 @@
       drive motors. Turning the bot would then require 'skid steering':
       sending a positive value to one motor, and a negative one to another.
 
+    MICROCONTROLLER:
+      ESP-32
+
 -----------------------------------------------------------------------------*/
 
 /*
