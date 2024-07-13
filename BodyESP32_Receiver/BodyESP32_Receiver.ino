@@ -1,104 +1,138 @@
-// This code recieves PWM channels from the radio receiver and sends PWM signals to the motor controllers of 
-// the bot. This microcontroller is necessary due to having different 'modes' of operation. I.e.: Moving forward requires 
-// sending a positive value to both the left and right drive motors. Turning the bot would then require 'skid steering':
-// sending a positive value to one motor, and a negative one to another. 
+/*----------------------------------------------------------------------------
 
-//TODO: Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
+    BodyESP32_Receiver.ino
 
-//ESP32 to Motor Controllers pinout
+    DESCRIPTION:
+      This code recieves PWM channels from the radio receiver and sends PWM
+      signals to the motor controllers of the bot. This microcontroller is
+      necessary due to having different 'modes' of operation. I.e.: Moving
+      forward requires sending a positive value to both the left and right
+      drive motors. Turning the bot would then require 'skid steering':
+      sending a positive value to one motor, and a negative one to another.
 
-// PIN 26 --> SIGNAL INPUT FOR L Side of Drive Motor Controller (White Wire)
-// PIN 27 --> SIGNAL INPUT FOR R Side of Drive Motor Controller (2.54 dupont labelled 'S')
-// RX --> TX ON ARDUINO NANO (HOPEFULLY I WILL CHANGE THIS FROM SERIAL COMM TO smthing else)
+-----------------------------------------------------------------------------*/
 
+/*
+TODO: Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc. 
+
+ESP32 to Motor Controllers pinout
+  PIN 26 --> SIGNAL INPUT FOR L Side of Drive Motor Controller (White Wire)
+  PIN 27 --> SIGNAL INPUT FOR R Side of Drive Motor Controller (2.54 dupont labelled 'S')
+  RX --> TX ON ARDUINO NANO (HOPEFULLY I WILL CHANGE THIS FROM SERIAL COMM TO smthing else)
+  TODO: Better document pinout
+
+*/
 
 #include <esp_now.h>
 #include <WiFi.h>
+#include "definitions.h"
 
 // Reciever to ESP32 pinout
-#define CH1 13
-#define CH2 4
-#define CH3 16
-#define CH4 17
-#define CH5 5
-#define CH6 18
-#define CH7 19
-#define CH8 21
-#define CH9 22
-#define CH10 23
-
+#define CH1   PIN_13
+#define CH2   PIN_4
+#define CH3   PIN_16
+#define CH4   PIN_17
+#define CH5   PIN_5
+#define CH6   PIN_18
+#define CH7   PIN_19
+#define CH8   PIN_21
+#define CH9   PIN_22
+#define CH10  PIN_23
 
 //Global Variables for interrupt functions for timing PWM signals.
 //Sadly, you cant pass arguments in to interrupt functions, so I have to have
 //different global variables and interrupt functions for each pin.
-volatile unsigned long CH1PulseBegin = 0;
-volatile unsigned long CH1PulseEnd = 0;
-volatile bool CH1NewPulseDurAvailable = false;
-volatile unsigned long CH2PulseBegin = 0;
-volatile unsigned long CH2PulseEnd = 0;
-volatile bool CH2NewPulseDurAvailable = false;
-volatile unsigned long CH3PulseBegin = 0;
-volatile unsigned long CH3PulseEnd = 0;
-volatile bool CH3NewPulseDurAvailable = false;
-volatile unsigned long CH4PulseBegin = 0;
-volatile unsigned long CH4PulseEnd = 0;
-volatile bool CH4NewPulseDurAvailable = false;
-volatile unsigned long CH5PulseBegin = 0;
-volatile unsigned long CH5PulseEnd = 0;
-volatile bool CH5NewPulseDurAvailable = false;
-volatile unsigned long CH6PulseBegin = 0;
-volatile unsigned long CH6PulseEnd = 0;
-volatile bool CH6NewPulseDurAvailable = false;
-volatile unsigned long CH7PulseBegin = 0;
-volatile unsigned long CH7PulseEnd = 0;
-volatile bool CH7NewPulseDurAvailable = false;
-volatile unsigned long CH8PulseBegin = 0;
-volatile unsigned long CH8PulseEnd = 0;
-volatile bool CH8NewPulseDurAvailable = false;
-volatile unsigned long CH9PulseBegin = 0;
-volatile unsigned long CH9PulseEnd = 0;
-volatile bool CH9NewPulseDurAvailable = false;
-volatile unsigned long CH10PulseBegin = 0;
-volatile unsigned long CH10PulseEnd = 0;
-volatile bool CH10NewPulseDurAvailable = false;
+volatile unsigned long    CH1PulseBegin = 0;
+volatile unsigned long    CH1PulseEnd = 0;
+volatile bool             CH1NewPulseDurAvailable = false;
 
-// Ints to represent values from sticks and pots
+volatile unsigned long    CH2PulseBegin = 0;
+volatile unsigned long    CH2PulseEnd = 0;
+volatile bool             CH2NewPulseDurAvailable = false;
+
+volatile unsigned long    CH3PulseBegin = 0;
+volatile unsigned long    CH3PulseEnd = 0;
+volatile bool             CH3NewPulseDurAvailable = false;
+
+volatile unsigned long    CH4PulseBegin = 0;
+volatile unsigned long    CH4PulseEnd = 0;
+volatile bool             CH4NewPulseDurAvailable = false;
+
+volatile unsigned long    CH5PulseBegin = 0;
+volatile unsigned long    CH5PulseEnd = 0;
+volatile bool             CH5NewPulseDurAvailable = false;
+
+volatile unsigned long    CH6PulseBegin = 0;
+volatile unsigned long    CH6PulseEnd = 0;
+volatile bool             CH6NewPulseDurAvailable = false;
+
+volatile unsigned long    CH7PulseBegin = 0;
+volatile unsigned long    CH7PulseEnd = 0;
+volatile bool             CH7NewPulseDurAvailable = false;
+
+volatile unsigned long    CH8PulseBegin = 0;
+volatile unsigned long    CH8PulseEnd = 0;
+volatile bool             CH8NewPulseDurAvailable = false;
+
+volatile unsigned long    CH9PulseBegin = 0;
+volatile unsigned long    CH9PulseEnd = 0;
+volatile bool             CH9NewPulseDurAvailable = false;
+
+volatile unsigned long    CH10PulseBegin = 0;
+volatile unsigned long    CH10PulseEnd = 0;
+volatile bool             CH10NewPulseDurAvailable = false;
+
+// Ints to represent controller's stick positions, 3 way switch, and potentiometer values
 int ch1Value, ch2Value, ch3Value, ch4Value, ch5Value, ch6Value, ch9Value;
 
 //For tracking volume sent to audio board
 int lastVolumeSent = 0;
 
-// Bool to represent switch value
+// Bool to represent 2-way switches value
 bool ch7Value;
 bool ch8Value;
 bool ch10Value;
+
 // Ints to be sent to Motor Controllers
 int LeftDriveValue, RightDriveValue, DomeMotorValue, Motor4Value;
 
+// Last time an emote was sent to head
+unsigned long lastEmoteSent = 0;
+
+// Controls mosfet for projector bulb
 bool projectorBulb = false;
 unsigned long lastProjectorStatus = 0;
 
+// Control signals for pamphlet dispenser
 bool pamphletDispenser = false;
 bool turnPDOnFlag = false;
 unsigned long lastPamphletDispenserStatus = 0;
 
+// ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-//Create a struct that holds the ESP NOW packets
-typedef struct struct_message {
+// ESP-NOW packet struct
+typedef struct esp_pkt {
     String recip;
     int a;
     int vol;
-} struct_message;
+} esp_pkt;
 
 //packet to send
-struct_message packet;
+esp_pkt packet;
 //packet that is received
-struct_message incomingReadings;
+esp_pkt incomingReadings;
 
 esp_now_peer_info_t peerInfo;
 
-//Callback function when data is received
+/*----------------------------------------------------------------------
+
+    OnDataRecv
+
+      Callback function when data is received
+
+----------------------------------------------------------------------*/
+
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&packet, incomingData, sizeof(packet));
 
@@ -120,7 +154,12 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 
 
-//Interrupt functions to measure PWM signals
+/*----------------------------------------------------------------------
+
+    Interrupt functions to measure PWM signals
+
+----------------------------------------------------------------------*/
+
 void CH1Interrupt() {
   if (digitalRead(CH1) == HIGH) {
     // start measuring
@@ -231,22 +270,13 @@ void CH10Interrupt() {
     CH10NewPulseDurAvailable = true;
   }
 }
- /*
-// Read the number of a specified channel and convert to the range provided.
-// If the channel is off, return the default value
-int readChannel(int channelInput, int minLimit, int maxLimit, int defaultValue){
-  int pulseWidth = pulseIn(channelInput, HIGH, 30000);                                    //int pulseWidth = pulseiIn(pin, HIGH/LOW, timeout)
-  if (pulseWidth < 100) return defaultValue;
-  //return map(pulseWidth, 1000, 2000, minLimit, maxLimit);
-  return pulseWidth;
-}
- 
-// Read the switch channel and return a boolean value
-bool readSwitch(byte channelInput, bool defaultValue){
-  int intDefaultValue = (defaultValue)? 100: 0;
-  int pulseWidth = readChannel(channelInput, 0, 100, intDefaultValue);
-  return (pulseWidth > 50);
-}*/
+
+
+/*----------------------------------------------------------------------
+
+    Setup function
+
+----------------------------------------------------------------------*/
  
 void setup(){
   // Set up serial monitor
@@ -265,7 +295,7 @@ void setup(){
 
   //Register peer network
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-  peerInfo.channel = 0;  
+  peerInfo.channel = 0;
   peerInfo.encrypt = false;
 
   //Add peer network
@@ -285,13 +315,11 @@ void setup(){
   pinMode(CH8, INPUT);
   pinMode(CH9, INPUT);
   pinMode(CH10, INPUT);
-  //Figure out the correct PWM frequencies and set up the output pins with
-  // ledcSetup(ledChannel, freq, resolution); and
-  // ledcAttachPin(ledPin, ledChannel);
 
-  //As of now, the only recipient of messages from this board will be the Audio board.
+// As of now, the only recipient of messages from this board will be the Audio board.
   packet.recip = "audi";
 
+// Attach interrupt callback functions to be called on high-low transitions.
   attachInterrupt(digitalPinToInterrupt(CH1), CH1Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH2), CH2Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH3), CH3Interrupt, CHANGE);
@@ -303,28 +331,37 @@ void setup(){
   attachInterrupt(digitalPinToInterrupt(CH9), CH9Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH10), CH10Interrupt, CHANGE);
 
-
 //PWM OUTPUT TO CONTROL LEFT DRIVE MOTOR
-  pinMode(26, OUTPUT);
-  ledcAttachPin(26, 0);
-  ledcSetup(0, 1000, 8);
-
+  pinMode(PIN_26, OUTPUT);
+  ledcAttachPin(PIN_26, 0);      // (pin, channel)
+  ledcSetup(CHANNEL_0, 1000, 8); // (channel, frequency, resolution)
 
 //PWM OUTPUT TO CONTROL RIGHT DRIVE MOTOR
-  pinMode(27, OUTPUT);
-  ledcAttachPin(27, 1);
-  ledcSetup(1, 1000, 8);
+  pinMode(PIN_27, OUTPUT);
+  ledcAttachPin(PIN_27, 1);      // (pin, channel)
+  ledcSetup(CHANNEL_1, 1000, 8); // (channel, frequency, resolution)
 
 
- pinMode(32, OUTPUT); //Projector Bulb MOSFET Control
- pinMode(33, OUTPUT); //Pamphlet Dispenser Signal
+ pinMode(PIN_32, OUTPUT); //Projector Bulb MOSFET Control
+ pinMode(PIN_33, OUTPUT); //Pamphlet Dispenser Signal
 }
 
+/*----------------------------------------------------------------------
+
+    Microcontroller Superloop
+
+----------------------------------------------------------------------*/
 
 void loop() {
 
   long int time = millis();
   
+  /*--------------------------------------------
+  If there has been a high-to-low transition
+  on a PWM channel, then we have a new pulse
+  width available and can map that width to an
+  int value
+  --------------------------------------------*/
   if (CH1NewPulseDurAvailable) {
     CH1NewPulseDurAvailable = false;
     ch1Value = map((CH1PulseEnd - CH1PulseBegin), 1000, 2000, -100, 100);
@@ -332,7 +369,6 @@ void loop() {
   }
   if (CH2NewPulseDurAvailable) {
     CH2NewPulseDurAvailable = false;
-    
     if ((CH2PulseEnd - CH2PulseBegin) < 2000) {
     ch2Value = map((CH2PulseEnd - CH2PulseBegin), 0, 3302, 0, 255);
     }
@@ -402,54 +438,105 @@ void loop() {
     //Serial.println(CH10PulseEnd - CH10PulseBegin);
   }
   
- 
-  if (ch7Value == 0 && ch8Value == 0 && ch9Value == 0 && ch10Value == 0) {       //DRIVE MODE
-    //Channel 2 --> Forwards/Backwards (LMotor + RMotor) 
-    //Channel 1 --> Turn Left/Right (Either -LMotor/+RMotor or just +1Motor forward )
+  /*--------------------------------------------
+  Switch conditions for R2D2 to be in
+  DRIVE MODE
+  --------------------------------------------*/
+  if (ch7Value == 0 && ch8Value == 0 && ch9Value == 0 && ch10Value == 0) {
+    //Channel 2 (Right stick) --> Forwards/Backwards (LMotor + RMotor) 
+    //Channel 1 (Right stick) --> Turn Left/Right (Either -LMotor/+RMotor or just +1Motor forward )
     
     //DOME MOVEMENT
+    //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
     if (abs(ch4Value) > 15) { // If left stick not being pressed
-      //ledcWrite(ledChannel, dutyCycle);
       Serial.write(ch4Value);
-      //Serial.println(ch4Value);
     }
     else {
+      // TODO: perhaps enforce a channel value reset???
     }
 
     if (ch2Value > -1 && ch2Value < 256) {
-      int LMotor, RMotor;
-      LMotor = ch2Value + (float(ch1Value) * 0.1); //NOTE: Maybe implement dead zones for ch1.
-      RMotor = ch2Value - (float(ch1Value) * 0.1);
-      ledcWrite(0, LMotor);
-      ledcWrite(1, RMotor);
-     /* Serial.print("L: ");
-      Serial.print(LMotor);
-      Serial.print("  R: ");
-      Serial.println(RMotor); */
+      int LMotorPulseWidth, RMotorPulseWidth;
+
+      if (abs(ch1Value) > 12) {
+        LMotorPulseWidth = ch2Value + (float(ch1Value) * 0.1); //NOTE: Maybe implement dead zones for ch1.
+        RMotorPulseWidth = ch2Value - (float(ch1Value) * 0.1);
+      }
+      else {
+        LMotorPulseWidth = ch2Value;
+        RMotorPulseWidth = ch2Value;
+      }
+      ledcWrite(0, LMotorPulseWidth);
+      ledcWrite(1, RMotorPulseWidth);
     }
     else {
-      ledcWrite(0, 127);
+      ledcWrite(CHANNEL_0, 127);
+      ledcWrite(CHANNEL_1, 127);
     }
   }
-    if (ch7Value == 1 && ch8Value == 0 && ch9Value == 0 && ch10Value == 0) {       //DOME ROTATION ONLY MODE
-    //Channel 1 --> Turn Dome Left/Right
-  }
-      if (ch7Value == 0  && ch8Value == 1 && ch9Value == 0 && ch10Value == 0) {       //EMOTE MODE
-    //Move joysticks all the way to one direction to trigger an emote.
-    //Break emote functions out into functions above the main loop
 
-    //if emote 'a' is selected -> packet.a = 2;
-    //then -> esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  /*--------------------------------------------
+  Switch conditions for R2D2 to be in
+  DOME ROTATION ONLY MODE
+  --------------------------------------------*/
+  if (ch7Value == 1 && ch8Value == 0 && ch9Value == 0 && ch10Value == 0) {
+  //Channel 1 --> Turn Dome Left/Right
+  // TODO: IMPLEMENT DOME ROTATION MODE
   }
 
-  //If volume knob has changed >5, send a new packet instructing the volume to change
+  /*--------------------------------------------
+  Switch conditions for R2D2 to be in
+  EMOTE MODE
+  --------------------------------------------*/
+  if (ch7Value == 0  && ch8Value == 1 && ch9Value == 0 && ch10Value == 0) {
+
+  //Move joysticks all the way to one direction to trigger an emote.
+  //Break emote functions out into functions above the main loop
+
+  //if emote 'a' is selected -> packet.a = 2;
+  //then -> esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+
+    if ( time - lastEmoteSent > 5000 ) {
+      //Right stick left
+      if (ch1Value < -92) {
+        packet.a = 10;
+        lastEmoteSent = time;
+        esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+      }
+      //Right stick right
+      else if (ch1Value > 92) {
+        packet.a = 11;
+        lastEmoteSent = time;
+        esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+      }
+      //Right stick down
+      else if (ch2Value < 25) {
+        packet.a = 13;
+        lastEmoteSent = time;
+        esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+      }
+      //Right stick up
+      else if (ch2Value > 228) {  // TODO: CHECK TO MAKE SURE THIS VALUE IS ACHIEVABLE
+        packet.a = 14;
+        lastEmoteSent = time;
+        esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+      }
+    
+    }
+  }
+
+  /*--------------------------------------------
+  If volume knob has changed >5 since last 
+  volume was sent, send a new packet instructing
+  the volume to change
+  TODO: What are initial conditions???
+  --------------------------------------------*/
   if (abs(lastVolumeSent - ch5Value) > 5) {
     lastVolumeSent = ch5Value;
     packet.recip = "audi";
     packet.vol = lastVolumeSent;
     packet.a = -1;
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-
   }
 
   //If projectorBulb == true, close MOSFET switch to turn on bulb.
@@ -459,7 +546,7 @@ void loop() {
   else {
     digitalWrite(32, LOW);
   }
-
+  // Sent projector status to soundboard every 5 seconds
   if (millis() - lastProjectorStatus > 5000) {
     if (projectorBulb) {
       packet.a = 21;
@@ -472,17 +559,24 @@ void loop() {
     lastProjectorStatus = millis();
   }
 
+  /*--------------------------------------------
+  Control Pamphlet dispenser movement
+  TODO: investigate and better document how this works
+  --------------------------------------------*/
+
   if (pamphletDispenser && turnPDOnFlag && (millis() - lastPamphletDispenserStatus > 1000)) {
-    digitalWrite(33, HIGH);
+    digitalWrite(PIN_33, HIGH);
     lastPamphletDispenserStatus  = millis();
     turnPDOnFlag = false;
   }
   else if (pamphletDispenser && !turnPDOnFlag && (millis() - lastPamphletDispenserStatus > 1000)) {
-    digitalWrite(33, LOW);
+    digitalWrite(PIN_33, LOW);
     pamphletDispenser = false;
   }
 
-
+  /*--------------------------------------------
+  DEBUG SERIAL PRINTS
+  --------------------------------------------*/
 
 //Serial.println(projectorBulb);
   //Serial.println(millis() - time);

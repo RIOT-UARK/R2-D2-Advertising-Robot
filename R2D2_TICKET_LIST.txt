@@ -1,0 +1,25 @@
+R2D2 SOFTWARE TICKET LIST:
+
+ADD NUMBERING TO TICKETS AND ADD NUMBERS IN CODE COMMENTS!!!
+
+Maybe restructure ESP_NOW packet "audi" field to an int with enumerated recipients
+
+Investigate the initial conditions of the volume and lastVolumeSent variables in BodyESP32_Receiver
+
+Create Enums for packet.a values
+
+Investigate and better document how pamphlet dispenser code works! BodyESP32_Receiver/soundboard
+
+TODO: BodyESP32_Receiver Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
+
+Better document BodyESP32_Receiver pinout 
+
+Add code to BodyESP32_Receiver packet receive callback function to receive input packets from the camera and send commands to the Dome motor.
+
+In BodyESP32_Receiver, enforce the resetting of channel4 value when stick is released.
+
+In BodyESP32_Receiver, implement dome rotation control.
+
+Ensure that channel2 value of ~255 is achievable in BodyESP32_Receiver
+
+//TODO: HeadLEDController.ino PROVIDE GOOD EXPLANATION OF HOW PIN 7 is set and how that effects speed of talk
