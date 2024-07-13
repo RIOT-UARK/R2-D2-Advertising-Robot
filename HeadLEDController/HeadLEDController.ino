@@ -90,6 +90,7 @@ void loop() {
     talkFastFlag = true;
     frontDelayTime = time - 10;
     frontTalk(200, 450, front, frontDelayTime, frontLastColor);
+  // Keep talking fast if PIN_7 is still HIGH.
   }
   // Keep talking fast if PIN_7 is still HIGH.
   else if ((time - frontDelayTime > 0) && digitalRead(PIN_7) == HIGH) { //TODO: Still switching very quickly *sometimes* when in fast talk mode
