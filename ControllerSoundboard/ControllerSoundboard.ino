@@ -12,18 +12,21 @@
 
 -----------------------------------------------------------------------------*/
 
+/*-------------------------------------------------------------------
+        INCLUDES
+--------------------------------------------------------------------*/
+
 #include <esp_now.h>
 #include <WiFi.h>
 #include <esp_sleep.h>
-#include <definitions.h>
+#include <R2D2_LIB.h>
+
+/*-------------------------------------------------------------------
+        GLOBAL VARIABLES
+--------------------------------------------------------------------*/
 
 // ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-
-unsigned int debounceTime = 0;
-unsigned int lastSend = 0;        /* time of last packet sent   */
-bool isModemSleep = false;        /* flag for modem timeout     */
 
 //Struct for ESPNOW data packet
 typedef struct struct_message {
@@ -36,6 +39,18 @@ typedef struct struct_message {
 struct_message packet;
 
 esp_now_peer_info_t peerInfo;
+
+unsigned long int curTime = 1;         /* current time, ms since boot */
+unsigned long int debounceTime = 0;    /* button debounce time        */
+unsigned long int lastSend = 0;        /* time of last packet sent    */
+bool isModemSleep = false;             /* flag for modem timeout      */
+
+/*-------------------------------------------------------------------
+        Function declarations
+--------------------------------------------------------------------*/
+
+void setModemSleep();
+void wakeModemSleep();
 
 /*----------------------------------------------------------------------
 
@@ -58,28 +73,39 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
 }
 
-//ESPNOW func to be called every time data is sent
+
+/*----------------------------------------------------------------------
+
+    OnDataSent
+
+      Callback function when data is sent
+
+----------------------------------------------------------------------*/
+
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   //Serial.print("\r\nLast Packet Send Status:\t");
   //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
 
-void setModemSleep();
-void wakeModemSleep();
+
+/*----------------------------------------------------------------------
+
+    Setup function
+
+----------------------------------------------------------------------*/
 
 void setup() {
-
-
   Serial.begin(115200);
 
   WiFi.mode(WIFI_STA);
 
-    if (esp_now_init() != ESP_OK) {
+  if (esp_now_init() != ESP_OK) {                 /* Initialize ESP-NOW connection      */
     Serial.println("Error initializing ESP-NOW");
     return;
   }
 
-  esp_now_register_send_cb(OnDataSent);
+  esp_now_register_send_cb(OnDataSent);          /* Register send callback function     */
+  esp_now_register_recv_cb(OnDataRecv);          /* Register receive callback function  */
 
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;  
@@ -90,94 +116,110 @@ void setup() {
     return;
   }
 
-  //Button Pins, in order from left to right
-  pinMode(21, INPUT);
-  pinMode(5, INPUT);
-  pinMode(19, INPUT);
-  pinMode(18, INPUT);
-  pinMode(17, INPUT);
-  pinMode(16, INPUT);
-  pinMode(2, INPUT);
-  pinMode(4, INPUT);
+  /*  Button Pins, in physical order from left to right   */
+  pinMode(PIN_21, INPUT);
+  pinMode(PIN_5, INPUT);
+  pinMode(PIN_19, INPUT);
+  pinMode(PIN_18, INPUT);
+  pinMode(PIN_17, INPUT);
+  pinMode(PIN_16, INPUT);
+  pinMode(PIN_2, INPUT);
+  pinMode(PIN_4, INPUT);
 
-  pinMode(22, OUTPUT); //LED
+  /*
+  CURRENTLY UNUSED
+  pinMode(PIN_22, OUTPUT); //LED
 
-  digitalWrite(22, HIGH);
+  digitalWrite(PIN_22, HIGH);
+  */
 
   //The soundboard will only be sending data to the Audio Player Board
   packet.recip = "audi";
 }
 
+/*----------------------------------------------------------------------
+
+    Microcontroller Superloop
+
+----------------------------------------------------------------------*/
 
 void loop() {
+  curTime = millis();
 
-  if ((digitalRead(17) == HIGH) && ((millis() - debounceTime) > 750)) {
-    packet.a = 0;
-    debounceTime = millis();
-    lastSend = millis();
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-   
-  }
+  /*-----------------------------------------
+  If a button on the soundboad is pressed,
+  it will be connected to 3.3v (HIGH). If
+  pressed and it has been >750ms since last
+  audio was sent to soundboard, the
+  controller shall send a packet to signal
+  the audioboard to play a sound.
+  -----------------------------------------*/
 
-  if ((digitalRead(18) == HIGH) && ((millis() - debounceTime) > 750)) {
-    packet.a = 1;
-    debounceTime = millis();
-    lastSend = millis();
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  if ((digitalRead(2) == HIGH) && ((millis() - debounceTime) > 750)) {
-    packet.a = 2;
-    debounceTime = millis();
-    lastSend = millis();
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  if ((digitalRead(16) == HIGH) && ((millis() - debounceTime) > 750)) {
-    packet.a = 3;
-    debounceTime = millis();
-    lastSend = millis();
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  if ((digitalRead(19) == HIGH) && ((millis() - debounceTime) > 750)) {
-    packet.a = 4;
-    debounceTime = millis();
-    lastSend = millis();
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  if ((digitalRead(21) == HIGH) && ((millis() - debounceTime) > 750)) {
+  if ((digitalRead(PIN_21) == HIGH) && ((curTime - debounceTime) > 750)) {
     packet.a = 5;
-    debounceTime = millis();
-    lastSend = millis();
+    debounceTime = curTime;
+    lastSend = curTime;
     wakeModemSleep();
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
   }
 
-  if ((digitalRead(4) == HIGH) && ((millis() - debounceTime) > 750)) {
-    packet.a = 6;
-    debounceTime = millis();
-    lastSend = millis();
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  if ((digitalRead(5) == HIGH) && ((millis() - debounceTime) > 750)) {
+  else if ((digitalRead(PIN_5) == HIGH) && ((curTime - debounceTime) > 750)) {
     packet.a = 7;
-    debounceTime = millis();
-    lastSend = millis();
+    debounceTime = curTime;
+    lastSend = curTime;
     wakeModemSleep();
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
   }
 
-  //Go into sleep mode if 15s of inactivity. Reduces power usage from constantly active WIFI
-  if (millis() - lastSend > 15000) {
+  else if ((digitalRead(PIN_19) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.a = 4;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+
+  else if ((digitalRead(PIN_18) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.a = 1;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+
+  else if ((digitalRead(PIN_17) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.a = 0;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet)); 
+  }
+
+  else if ((digitalRead(PIN_16) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.a = 3;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+
+  else if ((digitalRead(PIN_2) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.a = 2;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+
+  else if ((digitalRead(PIN_4) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.a = 6;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+  //Go into sleep mode if 15s of inactivity. Reduces power usage from constantly active WiFi
+  else if (curTime - lastSend > 15000) {
     setModemSleep();
   }
 
@@ -192,8 +234,17 @@ void loop() {
   Serial.println(digitalRead(5));
   */
   
-  
 }
+
+
+/*----------------------------------------------------------------------
+
+    setModemSleep
+
+      Reduces power usage from constantly active WiFi and high clock
+      rate
+
+----------------------------------------------------------------------*/
 
 void setModemSleep() {
     WiFi.setSleep(true);
@@ -204,6 +255,15 @@ void setModemSleep() {
     
 }
  
+
+/*----------------------------------------------------------------------
+
+    wakeModemSleep
+
+      Wakes modem from sleep and increases CPU frequency
+
+----------------------------------------------------------------------*/
+
 void wakeModemSleep() {
   if (isModemSleep) {
     setCpuFrequencyMhz(240);

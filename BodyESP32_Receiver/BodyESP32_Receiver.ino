@@ -26,9 +26,17 @@ ESP32 to Motor Controllers pinout
 
 */
 
+/*-------------------------------------------------------------------
+        INCLUDES
+--------------------------------------------------------------------*/
+
 #include <esp_now.h>
 #include <WiFi.h>
-#include "definitions.h"
+#include <R2D2_LIB.h>
+
+/*-------------------------------------------------------------------
+        DEFINES AND CONSTANTS
+--------------------------------------------------------------------*/
 
 // Reciever to ESP32 pinout
 #define CH1   PIN_13
@@ -42,9 +50,13 @@ ESP32 to Motor Controllers pinout
 #define CH9   PIN_22
 #define CH10  PIN_23
 
-//Global Variables for interrupt functions for timing PWM signals.
-//Sadly, you cant pass arguments in to interrupt functions, so I have to have
-//different global variables and interrupt functions for each pin.
+/*-------------------------------------------------------------------
+        GLOBAL VARIABLES
+--------------------------------------------------------------------*/
+
+// Variables for interrupt functions for timing PWM signals.
+// Sadly, you cant pass arguments in to interrupt functions, so I have to have
+// different global variables and interrupt functions for each pin.
 volatile unsigned long    CH1PulseBegin = 0;
 volatile unsigned long    CH1PulseEnd = 0;
 volatile bool             CH1NewPulseDurAvailable = false;
@@ -84,6 +96,9 @@ volatile bool             CH9NewPulseDurAvailable = false;
 volatile unsigned long    CH10PulseBegin = 0;
 volatile unsigned long    CH10PulseEnd = 0;
 volatile bool             CH10NewPulseDurAvailable = false;
+
+// Current time, in ms
+unsigned long curTime = 0;
 
 // Ints to represent controller's stick positions, 3 way switch, and potentiometer values
 int ch1Value, ch2Value, ch3Value, ch4Value, ch5Value, ch6Value, ch9Value;
@@ -150,7 +165,16 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
       turnPDOnFlag = true;
     }
 }
-//Callback when data is sent
+
+
+/*----------------------------------------------------------------------
+
+    OnDataSent
+
+      Callback when data is sent
+
+----------------------------------------------------------------------*/
+
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   //Serial.print("\r\nLast Packet Send Status:\t");
   //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
@@ -356,9 +380,8 @@ void setup(){
 ----------------------------------------------------------------------*/
 
 void loop() {
+  curTime = millis();
 
-  long int time = millis();
-  
   /*--------------------------------------------
   If there has been a high-to-low transition
   on a PWM channel, then we have a new pulse
@@ -499,29 +522,29 @@ void loop() {
   //if emote 'a' is selected -> packet.a = 2;
   //then -> esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
 
-    if ( time - lastEmoteSent > 5000 ) {
+    if ( curTime - lastEmoteSent > 5000 ) {
       //Right stick left
       if (ch1Value < -92) {
         packet.a = 10;
-        lastEmoteSent = time;
+        lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
       //Right stick right
       else if (ch1Value > 92) {
         packet.a = 11;
-        lastEmoteSent = time;
+        lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
       //Right stick down
       else if (ch2Value < 25) {
         packet.a = 13;
-        lastEmoteSent = time;
+        lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
       //Right stick up
       else if (ch2Value > 228) {  // TODO: CHECK TO MAKE SURE THIS VALUE IS ACHIEVABLE
         packet.a = 14;
-        lastEmoteSent = time;
+        lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
     
@@ -544,13 +567,13 @@ void loop() {
 
   //If projectorBulb == true, close MOSFET switch to turn on bulb.
   if (projectorBulb) {
-    digitalWrite(32, HIGH);
+    digitalWrite(PIN_32, HIGH);
   }
   else {
-    digitalWrite(32, LOW);
+    digitalWrite(PIN_32, LOW);
   }
   // Sent projector status to soundboard every 5 seconds
-  if (millis() - lastProjectorStatus > 5000) {
+  if (curTime - lastProjectorStatus > 5000) {
     if (projectorBulb) {
       packet.a = 21;
     }
@@ -559,20 +582,22 @@ void loop() {
     }
     packet.recip = "boar";
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-    lastProjectorStatus = millis();
+    lastProjectorStatus = curTime;
   }
 
   /*--------------------------------------------
   Control Pamphlet dispenser movement
   TODO: investigate and better document how this works
+  Basically sends signal to secondary motor controller,
+  which handles driving PD motor
   --------------------------------------------*/
 
-  if (pamphletDispenser && turnPDOnFlag && (millis() - lastPamphletDispenserStatus > 1000)) {
+  if (pamphletDispenser && turnPDOnFlag && (curTime - lastPamphletDispenserStatus > 1000)) {
     digitalWrite(PIN_33, HIGH);
-    lastPamphletDispenserStatus  = millis();
+    lastPamphletDispenserStatus  = curTime;
     turnPDOnFlag = false;
   }
-  else if (pamphletDispenser && !turnPDOnFlag && (millis() - lastPamphletDispenserStatus > 1000)) {
+  else if (pamphletDispenser && !turnPDOnFlag && (curTime - lastPamphletDispenserStatus > 1000)) {
     digitalWrite(PIN_33, LOW);
     pamphletDispenser = false;
   }

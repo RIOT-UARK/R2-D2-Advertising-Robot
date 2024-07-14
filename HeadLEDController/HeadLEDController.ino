@@ -14,9 +14,17 @@
 
 -----------------------------------------------------------------------------*/
 
+/*-------------------------------------------------------------------
+        INCLUDES
+--------------------------------------------------------------------*/
+
 #include <Adafruit_NeoPixel.h>
 #include <Servo.h>
-#include <definitions.h>
+#include <R2D2_LIB.h>
+
+/*-------------------------------------------------------------------
+        DEFINES AND CONSTANTS
+--------------------------------------------------------------------*/
 
 #define FRONT_PSI_PIN    PIN_6
 #define BACK_PSI_PIN     PIN_8
@@ -25,8 +33,12 @@
 Adafruit_NeoPixel front(LED_COUNT, FRONT_PSI_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel back(LED_COUNT, BACK_PSI_PIN, NEO_GRB + NEO_KHZ800);
 
-Servo servo1;
-Servo servo2;
+/*-------------------------------------------------------------------
+        GLOBAL VARIABLES
+--------------------------------------------------------------------*/
+
+Servo servo1;               /* servo that controls TYPE ME                   */
+Servo servo2;               /* servo that controls TYPE ME                   */
 
 long time = 1;              /* current time                                  */
 long periscopeTimer = 0;    /* time when periscope movement will finish      */
@@ -44,6 +56,12 @@ int r, g, b;
 int fadeR, fadeG, fadeB;    /* Brightness values for r,g,b to be iterated    */
 bool isFading = false;
 bool fadeDown = true;
+
+/*----------------------------------------------------------------------
+
+    Setup function
+
+----------------------------------------------------------------------*/
 
 void setup() {
   Serial.begin(57600);
@@ -71,11 +89,15 @@ void setup() {
 }
 
 
-/*--------------------------------------------------------------------------------------------
-A signal of HIGH will be received on PIN_7 if R2D2 is supposed to be 'talking'. Receiving
-this signal will cause R2's front psi light to rapidly change colors, as it does in the 
-movies
----------------------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------
+
+    Microcontroller Superloop
+
+      A signal of HIGH will be received on PIN_7 if R2D2 is supposed to
+      be 'talking'. Receiving this signal will cause R2's front psi 
+      light to rapidly change colors, as it does in the movies
+
+----------------------------------------------------------------------*/
 
 void loop() {
   time = millis();
@@ -146,12 +168,15 @@ void loop() {
 
 }
 
-/*---------------------------------------------------
-  Change front psi light color. Randomly changes 
-  between red, blue and white. When R2D2 is
-  'talking', these lights will change much more
-  rapidly, as they do in the movies.
----------------------------------------------------*/
+/*---------------------------------------------------------------
+
+  frontTalk
+
+    Change front psi light color. Randomly changes between red,
+    blue and white. When R2D2 is 'talking', these lights will
+    change much more rapidly, as they do in the movies.
+
+----------------------------------------------------------------*/
 
 void frontTalk(int min, int max, Adafruit_NeoPixel &strip, long &delayTime, int &lastColor) 
 {
@@ -191,10 +216,15 @@ void frontTalk(int min, int max, Adafruit_NeoPixel &strip, long &delayTime, int 
 }
 
 
-  /*----------------------------------------------
-    Randomly change back psi light. Changes
-    between red, green, and yellow.
-  ----------------------------------------------*/
+  /*---------------------------------------------------------------
+
+    backTalk
+  
+      Randomly change back psi light. Changes between red, green, 
+      and yellow.  
+
+  ---------------------------------------------------------------*/
+
   void backTalk(int min, int max, Adafruit_NeoPixel &strip, long &delayTime, int &lastColor) 
 {
   backColorSelection = random(10); //Back psi. 50% red, 40% green, 10% yellow
@@ -236,11 +266,17 @@ void frontTalk(int min, int max, Adafruit_NeoPixel &strip, long &delayTime, int 
         back.show();
 }
 
- /*----------------------------------------------------
-  Gives back psi light ability to fade in and out when
-  changing colors
-  CURRENTLY NOT USED. SHALL REIMPLEMENT IF HAVE TIME
- ----------------------------------------------------*/
+
+  /*---------------------------------------------------------------
+
+    fade
+  
+      Gives back psi light ability to fade in and out when
+      changing colors
+      CURRENTLY NOT USED. SHALL REIMPLEMENT IF HAVE TIME 
+
+  ---------------------------------------------------------------*/
+
   void fade() {
     if (fadeR != r || fadeG != g || fadeB != b) {
       if (isFading && fadeDown) {
