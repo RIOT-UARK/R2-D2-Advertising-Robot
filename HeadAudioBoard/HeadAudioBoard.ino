@@ -46,14 +46,12 @@ const char* ext="mp3";
         GLOBAL VARIABLES
 --------------------------------------------------------------------*/
 
-// Struct that holds the ESP NOW packets
-typedef struct struct_message {
-    String recip;
-    int a;
-    int vol;
-} struct_message;
+// ESP-NOW broadcast address - Broadcast as WAN
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+//ESP NOW wireless communication packet
 struct_message packet;
+esp_now_peer_info_t peerInfo;
 
 //counter variables for iterating through sound categories
 unsigned int excite = 0;
@@ -62,6 +60,18 @@ unsigned int scre = 0;
 unsigned int ackn = 0;
 unsigned int chat = 0;
 float volTmp;
+
+// Whether AI Cam has control over dome movement
+bool AICamControl = false;
+
+// Currrent time, time since boot in ms
+unsigned long curTime = 0;
+
+// Time of last AICam dome movement packet sent
+unsigned long lastAICamPacketTime = 0;
+
+// Time of last received AICamControlPkt
+unsigned long lastAICamControlPkt = 0;
 
 // Create AudioKit objects
 AudioSourceSD source(startFilePath, ext, PIN_AUDIO_KIT_SD_CARD_CS);
@@ -86,15 +96,15 @@ AudioPlayer player(source, kit, decoder);
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&packet, incomingData, sizeof(packet));
 
-  if (packet.recip == "audi") {      /* if AudioBoard is the packet recipient */
-    switch (packet.a) {
+  if (packet.recipient == AUDIOBOARD) {      /* if HeadAudioBoard is the packet recipient */
+    switch (packet.role) {
       // Volume change packet.
-      case -1:
+      case VOLUME_HAS_CHANGED:
         volTmp = float(packet.vol) / 100;
         player.setVolume(volTmp);
         break;
       // Soundboard packet
-      case 0:
+      case PLAY_EXCITE_AUDIO:
         if (excite % 2 == 1) {
           player.setPath("/exci0.mp3");
           //Signal R2D2 psi light to 'talk'
@@ -112,7 +122,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           excite++;
         break;
       // Soundboard packet
-      case 1:
+      case PLAY_WORRIED_AUDIO:
         if (worr % 2 == 1) {
           player.setPath("/worr0.mp3");
           //Signal R2D2 psi light to 'talk'
@@ -130,7 +140,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           worr++;
         break;
       // Soundboard packet
-      case 2:
+      case PLAY_SCREAM_AUDIO:
         if (scre % 2 == 1) {
           player.setPath("/scre0.mp3");
           //Signal R2D2 psi light to 'talk'
@@ -148,7 +158,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           scre++;
         break;
       // Soundboard packet
-      case 3:
+      case PLAY_ACKNOWLEDGE_AUDIO:
         if (ackn % 2 == 1) {
           player.setPath("/ackn0.mp3");
           //Signal R2D2 psi light to 'talk'
@@ -166,7 +176,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           ackn++;
         break;
       // Soundboard packet
-      case 4:
+      case PLAY_CHAT_AUDIO:
         if (chat % 2 == 1) {
           player.setPath("/chat0.mp3");
           //Signal R2D2 psi light to 'talk'
@@ -183,21 +193,36 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         }
           chat++;
         break;
-      case 5:
-
+      case AI_CAM_CONTROL_ON:
+        AICamControl = true;
+        //digitalWrite(PIN_XX, HIGH); TODO: NEED TO ASSIGN THIS PIN
+        lastAICamControlPkt = curTime;
         break;
-      case 6:
-
-        break;
-      case 7:
-
-        break;
+      case AI_CAM_CONTROL_OFF:
+        AICamControl = false;
+        //digitalWrite(PIN_XX, LOW); TODO: NEED TO ASSIGN THIS PIN
+        lastAICamControlPkt = curTime;
     }
   
   }
 }
 
-/* TODO: Implement an OnDataRecv function to send dome motor signals to BodyESP32_Receiver */
+
+/*----------------------------------------------------------------------
+
+    OnDataSent
+
+      Callback function when data is sent
+
+----------------------------------------------------------------------*/
+
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+  //Serial.print("\r\nLast Packet Send Status:\t");
+  //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+}
+
+
+/* TODO: Implement an OnDataSent function to send dome motor signals to BodyESP32_Receiver */
 
 /*----------------------------------------------------------------------
 
@@ -230,11 +255,29 @@ void setup() {
 
   // Signal to HeadLEDController for R2D2 to 'talk'.
   pinMode(PIN_23, OUTPUT);
+  // Signal to HeadFacialDetection to permit control of dome.
+/*  pinMode(XXXXXX, OUTPUT);                  */
+  // Signal from HeadFacialDetection for left Dome movement
+/*  pinMode(XXXXXX, INPUT);                   */
+  // Signal from HeadFacialDetection for right Dome movement
+/*  pinMode(XXXXXX, INPUT);                   */
 
   WiFi.mode(WIFI_STA);
 
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+
+  esp_now_register_send_cb(OnDataSent);       /* Register send callback function                         */
+  esp_now_register_recv_cb(OnDataRecv);       /* Register callback function for when packet is received. */
+
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  peerInfo.channel = 0;  
+  peerInfo.encrypt = false;
+
+  if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    Serial.println("Failed to add peer");
     return;
   }
 
@@ -252,10 +295,7 @@ void setup() {
 
   // setup player
   player.setVolume(1.0f);
-  player.begin();
-
-  // Register callback function for when packet is received.
-  esp_now_register_recv_cb(OnDataRecv);
+  player.begin();  
 
   //Key 5 (pin 18) must be pressed to turn on the amplifier.
   pinMode(PIN_KEY5, OUTPUT);
@@ -275,5 +315,36 @@ void loop() {
   player.copy();
   kit.processActions();
 //Serial.println(digitalRead(23));
+
+  curTime = millis();
+
+  // If we are in AI Cam Control mode and it has been at least 150ms since last packet sent
+  if (AICamControl && (curTime - lastAICamPacketTime >= 150)) {
+
+    // If receiving command to turn left
+    if ((digitalRead(PIN_XX) == HIGH) && (digitalRead(PIN_XX) == LOW)) {
+        packet.recipient = BODY_ESP32_RECEIVER;
+        packet.role      = AI_CAM_TURN_DOME_LEFT;
+    }
+    // If receiving command to turn right
+    else if ((digitalRead(PIN_XX) == LOW) && (digitalRead(PIN_XX) == HIGH)) {
+        packet.recipient = BODY_ESP32_RECEIVER;
+        packet.role      = AI_CAM_TURN_DOME_RIGHT;
+    }
+    else {
+        packet.recipient = BODY_ESP32_RECEIVER;
+        packet.role      = AI_CAM_NO_DOME_TURN;
+    }
+
+    // Send packet and set last packet sent time to now
+    lastAICamPacketTime = curTime;
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+
+  // If we have not received an AICamControlPkt from BodyESP32Receiver in the last 1.75 seconds
+  if (curTime - lastAICamControlPkt >= 1750) {
+    AICamControl = false;
+    //digitalWrite(PIN_XX, LOW); TODO: NEED TO ASSIGN THIS PIN
+  }
 
 }

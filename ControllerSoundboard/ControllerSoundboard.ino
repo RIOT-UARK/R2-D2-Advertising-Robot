@@ -28,14 +28,7 @@
 // ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-//Struct for ESPNOW data packet
-typedef struct struct_message {
-  String recip;
-  int a;
-  int vol;
-} struct_message;
-
-//packet to send
+//ESP NOW wireless communication packet
 struct_message packet;
 
 esp_now_peer_info_t peerInfo;
@@ -63,11 +56,11 @@ void wakeModemSleep();
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&packet, incomingData, sizeof(packet));
 
-    if (packet.recip == "boar") {
-      if (packet.a == 20) {
+    if (packet.recipient == CONTROLLER_SOUNDBOARD) {
+      if (packet.role == SET_SOUNDBOARD_LED_LOW) {
         //Set LED low
       }
-      else if (packet.a == 21) {
+      else if (packet.role == SET_SOUNDBOARD_LED_HIGH) {
         //Set LED High
       }
     }
@@ -134,7 +127,7 @@ void setup() {
   */
 
   //The soundboard will only be sending data to the Audio Player Board
-  packet.recip = "audi";
+  packet.recipient = AUDIOBOARD;
 }
 
 /*----------------------------------------------------------------------
@@ -156,7 +149,7 @@ void loop() {
   -----------------------------------------*/
 
   if ((digitalRead(PIN_21) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.a = 5;
+    packet.role = 5;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -164,7 +157,7 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_5) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.a = 7;
+    packet.role = 7;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -172,7 +165,7 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_19) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.a = 4;
+    packet.role = 4;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -180,7 +173,7 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_18) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.a = 1;
+    packet.role = 1;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -188,7 +181,7 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_17) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.a = 0;
+    packet.role = 0;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -196,7 +189,7 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_16) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.a = 3;
+    packet.role = 3;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -204,7 +197,7 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_2) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.a = 2;
+    packet.role = 2;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -212,7 +205,7 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_4) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.a = 6;
+    packet.role = 6;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -250,9 +243,8 @@ void setModemSleep() {
     WiFi.setSleep(true);
     isModemSleep = true;
     if (!setCpuFrequencyMhz(40)){
-        
+
     }
-    
 }
  
 

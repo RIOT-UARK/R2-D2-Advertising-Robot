@@ -173,33 +173,33 @@ void loop() {
     }
   }
   else if (stage == 1) {       // Signal to print has been received. Load a pamphlet in paper feeder (move motor in one direction) and open the door
-    digitalWrite(PIN_7, LOW);     // Motor Controller feed motor direction
+    digitalWrite(PIN_7, LOW);         // Motor Controller feed motor direction
     digitalWrite(PIN_8, HIGH);    
-    servo.write(90);              // Pamphlet door servo position
-    analogWrite(PIN_6, 80);       // PWM Speed signal to pamphlet feed motor
+    servo.write(90);                  // Pamphlet door servo position
+    analogWrite(PIN_6, 80);           // PWM Speed signal to pamphlet feed motor
     if (curTime - timeOfLastPam > 1500) {
       stage++;
     }
   }
   else if (stage == 2) {      // Feed the paper out of the pamphlet dispenser.
-    digitalWrite (7, HIGH);       // Motor Controller feed motor direction
-    digitalWrite (8, LOW);
+    digitalWrite (PIN_7, HIGH);       // Motor Controller feed motor direction
+    digitalWrite (PIN_8, LOW);
     servo.write(90);              // Pamphlet door servo position
-    analogWrite(6, 80);           // PWM Speed signal to pamphlet feed motor
+    analogWrite(PIN_6, 80);           // PWM Speed signal to pamphlet feed motor
     if (curTime - timeOfLastPam > 3500) {
       stage++;
     }
   }
   else if (stage == 3) {      // Stop the paper feeder motor when the paper is just about out of the dispenser.
-    digitalWrite(7, LOW);         // Motor Controller feed motor direction
-    digitalWrite(8, LOW);
-    analogWrite(6, 0);            // PWM Speed signal to pamphlet feed motor
+    digitalWrite(PIN_7, LOW);         // Motor Controller feed motor direction
+    digitalWrite(PIN_8, LOW);
+    analogWrite(PIN_6, 0);            // PWM Speed signal to pamphlet feed motor
     if (curTime - timeOfLastPam > 5000) {
       stage++;
     }
   }
   else if (stage == 4) {      // Wait for an additional button press from the controller to signal to close the door
-    if (digitalRead(5) == HIGH) {
+    if (digitalRead(PIN_5) == HIGH) {
       servo.write(0);             // Pamphlet door servo position
       stage++;
       timeOfLastPam = curTime;

@@ -1,6 +1,25 @@
-//This code controls an AMB-82 mini microcontroller in R2's head. This AMB-82 mini runs an open source (https://www.amebaiot.com/en/amebapro2-arduino-neuralnework-face-detection/)
-//TensorFlow Lite model for facial detection. The program then finds the closest (my measurement of width) face to the camera, and sends commands 
-//to the dome motor to center on that face, providing interactability with R2. 
+/*----------------------------------------------------------------------------
+
+    HeadFacialDetection.ino
+
+    DESCRIPTION:
+      This code controls an AMB-82 mini microcontroller in R2's head. This 
+      AMB-82 mini runs an open source 
+      (https://www.amebaiot.com/en/amebapro2-arduino-neuralnework-face-detection/)
+      TensorFlow Lite model for facial detection. The program then finds the 
+      closest (my measurement of width) face to the camera, and sends commands 
+      to the dome motor to center on that face, providing interactability with R2. 
+
+    MICROCONTROLLER:
+      AMB-82 Mini
+
+-----------------------------------------------------------------------------*/
+
+//TODO: Implement pinout description
+
+/*-------------------------------------------------------------------
+        INCLUDES
+--------------------------------------------------------------------*/
 
 #include "WiFi.h"
 #include "StreamIO.h"
@@ -8,7 +27,11 @@
 #include "RTSP.h"
 #include "NNFaceDetection.h"
 #include "VideoStreamOverlay.h"
-#include <AmebaServo.h>
+#include <R2D2_LIB.h>
+
+/*-------------------------------------------------------------------
+        DEFINES AND CONSTANTS
+--------------------------------------------------------------------*/
 
 #define CHANNEL   0
 #define CHANNELNN 3
@@ -16,6 +39,10 @@
 // Lower resolution for NN processing
 #define NNWIDTH  576
 #define NNHEIGHT 320
+
+/*-------------------------------------------------------------------
+        GLOBAL VARIABLES
+--------------------------------------------------------------------*/
 
 VideoSetting config(VIDEO_FHD, 30, VIDEO_H264, 0);
 VideoSetting configNN(NNWIDTH, NNHEIGHT, 20, VIDEO_RGB, 0);
@@ -30,12 +57,17 @@ char ssid[] = "Test0";    // your network SSID (name)
 char pass[] = "DontPanic0042";       // your network password
 int status = WL_IDLE_STATUS;
 */
-AmebaServo servo;
 float faceMiddle;        //Middle Pixel of the user's face
-#define SERVO_PIN 1       //CONFIGURE CONFIGURE CONFIGURE
 
 IPAddress ip;
 int rtsp_portnum; 
+
+
+/*----------------------------------------------------------------------
+
+    Setup function
+
+----------------------------------------------------------------------*/
 
 void setup() {
     Serial.begin(115200);
@@ -96,15 +128,33 @@ void setup() {
     OSD.configVideo(CHANNEL, config);
     OSD.begin();
 
-    servo.attach(SERVO_PIN); 
-    //servo.write(71);
+    // Signal to turn R2D2 Dome Left
+    pinMode(PIN_1, OUTPUT);
+    // Signal to turn R2D2 Dome Right TODO: FIND PIN FOR THIS
+    //pinMode(XXXXX, OUTPUT);
+
 }
+
+
+/*----------------------------------------------------------------------
+
+    Microcontroller Superloop
+
+----------------------------------------------------------------------*/
 
 void loop() {
     // Do nothing
 }
 
-// User callback function for post processing of face detection results
+
+/*----------------------------------------------------------------------
+
+    FDPostProcess
+
+      User callback function for post processing of face detection results
+
+----------------------------------------------------------------------*/
+
 void FDPostProcess(std::vector<FaceDetectionResult> results) {
     uint16_t im_h = config.height();
     uint16_t im_w = config.width();
@@ -121,10 +171,14 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
     */
 
     //printf("Total number of faces detected = %d\r\n", facedet.getResultCount());
+
+    // TODO: Determine if necessary (Seems to be rtsp related, not nn related.)
     OSD.createBitmap(CHANNEL);
 
+    // If a face is detected
     if (facedet.getResultCount() > 0) {
       float faceSize[facedet.getResultCount()];
+        // For each face detected
         for (uint32_t i = 0; i < facedet.getResultCount(); i++) {
             FaceDetectionResult item = results[i];
             
@@ -135,8 +189,10 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
             int ymin = (int)(item.yMin() * im_h);
             int ymax = (int)(item.yMax() * im_h);
 
+            // Calculate width of face detected
             faceSize[i] = xmax - xmin; 
-            if (faceSize[i] > maxSize) { //Find face with the highest confidence
+            // Determine if closest/widest face detected so far
+            if (faceSize[i] > maxSize) {
               maxSize = faceSize[i];
               maxIndex = i;
             }
@@ -158,8 +214,11 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
             }
         }
 
+        // If a face was detected
         if (maxIndex != -1) {
+          // Calculate middle point of face closest to camera
           faceMiddle = (results[maxIndex].xMin() + results[maxIndex].xMax()) / 2;
+
           /*
           Serial.print("Middle of face detected at X = ");
           Serial.println(faceMiddle);
@@ -167,28 +226,28 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
           Serial.println(results[maxIndex].xMax());
           */
         
+          // If closest face is to the right -> turn right
           if (faceMiddle > 0.63) {
-            servo.write(84);
-            Serial.println("S83");
+            //digitalWrite(XXXXXX, HIGH);
+            digitalWrite(PIN_1, LOW);
           }
+          // If closest face is to the left -> turn left
           else if (faceMiddle < 0.37) {
-            servo.write(93);
-            Serial.println("S94");
+            //digitalWrite(XXXXX, LOW);
+            digitalWrite(PIN_1, HIGH);
           }
+          // If face is centered on the camera -> don't turn
           else {
-          Serial.println("S89");
-          servo.write(89);
-        } 
-        
+          //digitalWrite(XXXXX, LOW);
+            digitalWrite(PIN_1, LOW);
+          } 
 
         }
         
-      
-
     }
     else {
-      //Serial.println("SNO");
-      servo.write(89);
+      //digitalWrite(XXXXX, LOW);
+      digitalWrite(PIN_1, LOW);
     } 
     OSD.update(CHANNEL);
 }

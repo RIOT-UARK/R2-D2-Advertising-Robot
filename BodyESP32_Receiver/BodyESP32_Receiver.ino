@@ -129,17 +129,10 @@ unsigned long lastPamphletDispenserStatus = 0;
 // ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-// ESP-NOW packet struct
-typedef struct esp_pkt {
-    String recip;
-    int a;
-    int vol;
-} esp_pkt;
-
-//packet to send
-esp_pkt packet;
+//ESP NOW packet for outbound wireless communications
+struct_message packet;
 //packet that is received
-esp_pkt incomingReadings;
+struct_message incomingReadings;
 
 esp_now_peer_info_t peerInfo;
 
@@ -157,10 +150,10 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     //This Receiver microcontroller will be receiving data from the computer vision Camera.
     //Todo: add code to receive input packets from the camera and send commands to the Dome motor. 
 
-    if (packet.a ==6) {
+    if (packet.role == TOGGLE_PROJECTOR_BULB) {
       projectorBulb = !projectorBulb;
     }
-    if (packet.a == 7) {
+    if (packet.role == TRIGGER_PAMPHLET_DISPENSER_EVENT) {
       pamphletDispenser = !pamphletDispenser;
       turnPDOnFlag = true;
     }
@@ -344,7 +337,7 @@ void setup(){
   pinMode(CH10, INPUT);
 
 // As of now, the only recipient of messages from this board will be the Audio board.
-  packet.recip = "audi";
+  packet.recipient = AUDIOBOARD;
 
 // Attach interrupt callback functions to be called on high-low transitions.
   attachInterrupt(digitalPinToInterrupt(CH1), CH1Interrupt, CHANGE);
@@ -519,31 +512,35 @@ void loop() {
   //Move joysticks all the way to one direction to trigger an emote.
   //Break emote functions out into functions above the main loop
 
-  //if emote 'a' is selected -> packet.a = 2;
+  //if an emote is selected -> packet.role = 2;
   //then -> esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
 
     if ( curTime - lastEmoteSent > 5000 ) {
       //Right stick left
       if (ch1Value < -92) {
-        packet.a = 10;
+        packet.role = TRIGGER_EMOTE_XXXXX1;
+        packet.recipient = AUDIOBOARD;
         lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
       //Right stick right
       else if (ch1Value > 92) {
-        packet.a = 11;
+        packet.role = TRIGGER_EMOTE_XXXXX2;
+        packet.recipient = AUDIOBOARD;
         lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
       //Right stick down
       else if (ch2Value < 25) {
-        packet.a = 13;
+        packet.role = TRIGGER_EMOTE_XXXXX3;
+        packet.recipient = AUDIOBOARD;
         lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
       //Right stick up
       else if (ch2Value > 228) {  // TODO: CHECK TO MAKE SURE THIS VALUE IS ACHIEVABLE
-        packet.a = 14;
+        packet.role = TRIGGER_EMOTE_XXXXX4;
+        packet.recipient = AUDIOBOARD;
         lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
@@ -559,9 +556,9 @@ void loop() {
   --------------------------------------------*/
   if (abs(lastVolumeSent - ch5Value) > 5) {
     lastVolumeSent = ch5Value;
-    packet.recip = "audi";
+    packet.recipient = AUDIOBOARD;
     packet.vol = lastVolumeSent;
-    packet.a = -1;
+    packet.role = VOLUME_HAS_CHANGED;
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
   }
 
@@ -572,15 +569,15 @@ void loop() {
   else {
     digitalWrite(PIN_32, LOW);
   }
-  // Sent projector status to soundboard every 5 seconds
+  // Send projector status to soundboard every 5 seconds
   if (curTime - lastProjectorStatus > 5000) {
     if (projectorBulb) {
-      packet.a = 21;
+      packet.role = SET_SOUNDBOARD_LED_HIGH;
     }
     else {
-      packet.a = 20;
+      packet.role = SET_SOUNDBOARD_LED_LOW;
     }
-    packet.recip = "boar";
+    packet.recipient = CONTROLLER_SOUNDBOARD;
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
     lastProjectorStatus = curTime;
   }

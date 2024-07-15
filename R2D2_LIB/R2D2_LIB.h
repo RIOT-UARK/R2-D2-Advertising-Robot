@@ -48,11 +48,64 @@ enum PWM_DUTY_CYCLE_8_BIT {
     MAX_DUTY_CYCLE = 255
 };
 
+/*---------------------------------------------------
+    ESP-32 PWM Channels
+---------------------------------------------------*/
 enum LEDC_CHANNELS {
     CHANNEL_0,
     CHANNEL_1
 };
 
-enum PACKET_A_VALUES {
-    VOLUME_HAS_CHANGED = -1
+/*---------------------------------------------------
+    Struct that holds the ESP NOW packets. This
+    packet is used to communicate wirelessly via
+    ESP NOW between ControllerSoundboard, 
+    HeadAudioBoard, and BodyESP32_Receiver.
+---------------------------------------------------*/
+typedef struct struct_message {
+    int recipient;          /* Intended recipient               */
+    int role;               /* Intended role of packet          */
+    int vol;                /* For adjusting AudioBoard volume  */
+} struct_message;
+
+/*---------------------------------------------------
+    The struct_message packet.role field contains
+    the intended purpose of each packet.
+---------------------------------------------------*/
+enum PACKET_ROLE_VALUES {
+    VOLUME_HAS_CHANGED = -1,
+    PLAY_EXCITE_AUDIO,
+    PLAY_WORRIED_AUDIO,
+    PLAY_SCREAM_AUDIO,
+    PLAY_ACKNOWLEDGE_AUDIO,
+    PLAY_CHAT_AUDIO,
+
+    TOGGLE_PROJECTOR_BULB = 6,
+    TRIGGER_PAMPHLET_DISPENSER_EVENT,
+
+    TRIGGER_EMOTE_XXXXX1 = 10,
+    TRIGGER_EMOTE_XXXXX2,
+    TRIGGER_EMOTE_XXXXX3,
+    TRIGGER_EMOTE_XXXXX4,
+
+    SET_SOUNDBOARD_LED_LOW = 20,
+    SET_SOUNDBOARD_LED_HIGH = 21,
+
+    AI_CAM_CONTROL_ON = 30,
+    AI_CAM_CONTROL_OFF,
+    AI_CAM_TURN_DOME_LEFT,
+    AI_CAM_TURN_DOME_RIGHT,
+    AI_CAM_NO_DOME_TURN
+
+
+};
+
+/*---------------------------------------------------
+    The struct_message packet.recipient field contains
+    the intended recipient of each packet
+---------------------------------------------------*/
+enum PACKET_RECIPIENTS {
+    AUDIOBOARD,
+    CONTROLLER_SOUNDBOARD,
+    BODY_ESP32_RECEIVER
 };

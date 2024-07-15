@@ -2,6 +2,8 @@ R2D2 SOFTWARE TICKET LIST:
 
 ADD NUMBERING TO TICKETS AND ADD NUMBERS IN CODE COMMENTS!!!
 
+TODO: REQUIRED FEATURE: <HeadAudioBoard> Receive L/R commands from AMB82 Camera when in facial tracking mode, and send them to reciever microcontroller
+
 Maybe restructure ESP_NOW packet "audi" field to an int with enumerated recipients
 
 Investigate the initial conditions of the volume and lastVolumeSent variables in BodyESP32_Receiver
@@ -26,16 +28,29 @@ Ensure that channel2 value of ~255 is achievable in BodyESP32_Receiver
 
 TEST ADDED CODE: HeadLEDController. Replaced many calls to millis() with a time variable.
 
+TEST ADDED CODE: ControllerSoundboad. Replaced many calls to millis() with a time variable.
+
 LOW PRIORITY: Reimplement HeadLEDController back psi fading w/ improvements
 	HeadLEDController: TEST ADDED CODE: for fading, now updating brightess every 15ms
 
 Add microcontrollers to the file descriptions of every file.
-
-Rename "definitions.h" to R2D2_LIB.h
 
 <ALL> move ESPNOW packet struct into R2D2_LIB.h
 
 ControllerSoundboard/BodyESP32_Receiver: investigate why 'incomingReadings' espnow packet variable isnt being used for OnDataRecv callback functions.
 [Seems to be Corrupting packets to be sent out]
 
+[HeadAudioBoard] /* TODO: Implement a way for audio board to know when emote mode/ AI mode has control of audio. Idea: periodic subscription packets w/ a timeout */
+
+[HeadAudioBoard] /* TODO: Implement an OnDataRecv function to send dome motor signals to BodyESP32_Receiver, so AI Camera can control Dome Motor. */
+
+[HeadLEDMatricies] Confirm Microcontroller is MKR-1000 and fix file banner
+
+[HeadLEDMatricies] Create array of matricies, add our matricies, turn 4 different for loops in loop() into 1.
+
+[Secondary_Motor_Driver] TODO: Implement Encoder Readings ?? Whats this mean?
+
+[Secondary_Motor_Driver] //TODO: Provide a good explanation of how the signals to the DROK motor controller works
+
+[ALL] Add nice pinout descriptions like how Secondary_Motor_Driver has.
 
