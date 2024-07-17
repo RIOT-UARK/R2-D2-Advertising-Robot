@@ -73,6 +73,9 @@ unsigned long lastAICamPacketTime = 0;
 // Time of last received AICamControlPkt
 unsigned long lastAICamControlPkt = 0;
 
+// last sent AI Came directed dome movement
+int lastSentAICamTurn;
+
 // Create AudioKit objects
 AudioSourceSD source(startFilePath, ext, PIN_AUDIO_KIT_SD_CARD_CS);
 AudioKitStream kit;
@@ -318,15 +321,15 @@ void loop() {
 
   curTime = millis();
 
-  // If we are in AI Cam Control mode and it has been at least 150ms since last packet sent
-  if (AICamControl && (curTime - lastAICamPacketTime >= 150)) {
+  // If we are in AI Cam Control mode
+  if (AICamControl) {
 
-    // If receiving command to turn left
+    // If receiving command to turn left from AICam
     if ((digitalRead(PIN_XX) == HIGH) && (digitalRead(PIN_XX) == LOW)) {
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_LEFT;
     }
-    // If receiving command to turn right
+    // If receiving command to turn right from AICam
     else if ((digitalRead(PIN_XX) == LOW) && (digitalRead(PIN_XX) == HIGH)) {
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_RIGHT;
@@ -336,15 +339,20 @@ void loop() {
         packet.role      = AI_CAM_NO_DOME_TURN;
     }
 
-    // Send packet and set last packet sent time to now
-    lastAICamPacketTime = curTime;
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
+    // If packet has changed or it has been 500ms since last packet sent
+    if ((curTime - lastAICamPacketTime > 500) || (packet.role != lastSentAICamTurn)) {
+      // last packet role = current packet role
+      lastSentAICamTurn = packet.role;
+      // Send packet and set last packet sent time to now
+      lastAICamPacketTime = curTime;
+      esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+    }
 
-  // If we have not received an AICamControlPkt from BodyESP32Receiver in the last 1.75 seconds
-  if (curTime - lastAICamControlPkt >= 1750) {
-    AICamControl = false;
-    //digitalWrite(PIN_XX, LOW); TODO: NEED TO ASSIGN THIS PIN
-  }
+    // If we have not received an AICamControlPkt from BodyESP32Receiver in the last 1.75 seconds
+    if (curTime - lastAICamControlPkt >= 1750) {
+      AICamControl = false;
+      //digitalWrite(PIN_XX, LOW); TODO: NEED TO ASSIGN THIS PIN
+    }
 
+  }
 }

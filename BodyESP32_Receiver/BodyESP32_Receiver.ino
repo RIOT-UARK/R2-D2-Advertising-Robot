@@ -117,6 +117,11 @@ int LeftDriveValue, RightDriveValue, DomeMotorValue, Motor4Value;
 // Last time an emote was sent to head
 unsigned long lastEmoteSent = 0;
 
+// Last time we sent an AICam Control On packet.
+unsigned long lastAICamControlOnPktSent = 0;
+
+unsigned long lastAICamPacketReceived = 0;
+
 // Controls mosfet for projector bulb
 bool projectorBulb = false;
 unsigned long lastProjectorStatus = 0;
@@ -125,6 +130,9 @@ unsigned long lastProjectorStatus = 0;
 bool pamphletDispenser = false;
 bool turnPDOnFlag = false;
 unsigned long lastPamphletDispenserStatus = 0;
+
+// Whether or not we're in AICamMode
+bool AICamMode;
 
 // ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -150,6 +158,29 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     //This Receiver microcontroller will be receiving data from the computer vision Camera.
     //Todo: add code to receive input packets from the camera and send commands to the Dome motor. 
 
+    if (packet.recipient == BODY_ESP32_RECEIVER) {
+      switch(packet.role) {
+        case TOGGLE_PROJECTOR_BULB:
+          projectorBulb = !projectorBulb;
+          break;
+        case TRIGGER_PAMPHLET_DISPENSER_EVENT:
+          pamphletDispenser = !pamphletDispenser;
+          turnPDOnFlag = true;
+          break;
+        case AI_CAM_TURN_DOME_LEFT:
+          lastAICamPacketReceived = curTime;
+          Serial.write(-30);
+          break;
+        case AI_CAM_TURN_DOME_RIGHT:
+          lastAICamPacketReceived = curTime;
+          Serial.write(30);
+          break;
+        case AI_CAM_NO_DOME_TURN:
+          lastAICamPacketReceived = curTime;
+          Serial.write(0);
+          break;
+      }
+    }
     if (packet.role == TOGGLE_PROJECTOR_BULB) {
       projectorBulb = !projectorBulb;
     }
@@ -471,6 +502,7 @@ void loop() {
       Serial.write(ch4Value);
     }
     else {
+      Serial.write(0);
       // TODO: perhaps enforce a channel value reset???
     }
 
@@ -546,6 +578,47 @@ void loop() {
       }
     
     }
+  }
+
+  /*--------------------------------------------
+  Switch conditions for R2D2 to be in
+  AI Cam Mode
+  --------------------------------------------*/
+  if (ch7Value == 0  && ch8Value == 0 && ch9Value == 1 && ch10Value == 0) {
+    // If transitioning from AICam off to AICam on
+    if (AICamMode == false) {
+      packet.recipient = AUDIOBOARD;
+      packet.role = AI_CAM_CONTROL_ON;
+      lastAICamControlOnPktSent = curTime;
+      esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+    }
+
+    AICamMode = true;
+
+    // If it's been more than 1.5 seconds since last Control On packet sent
+    if (curTime - lastAICamControlOnPktSent >= 1500) {
+      packet.recipient = AUDIOBOARD;
+      packet.role = AI_CAM_CONTROL_ON;
+      lastAICamControlOnPktSent = curTime;
+      esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+    }
+
+    if (curTime - lastAICamPacketReceived >= 650) {
+      Serial.write(0);
+    }
+
+  }
+  else {
+    // If transitioning from AICam on to AICam off
+    if (AICamMode == true) {
+      packet.recipient = AUDIOBOARD;
+      packet.role = AI_CAM_CONTROL_OFF;
+      esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+      Serial.write(0);
+    }
+
+    AICamMode = false;
+
   }
 
   /*--------------------------------------------
