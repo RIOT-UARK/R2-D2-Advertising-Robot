@@ -2,55 +2,28 @@ R2D2 SOFTWARE TICKET LIST:
 
 ADD NUMBERING TO TICKETS AND ADD NUMBERS IN CODE COMMENTS!!!
 
-TODO: REQUIRED FEATURE: <HeadAudioBoard> Receive L/R commands from AMB82 Camera when in facial tracking mode, and send them to reciever microcontroller
-
-Maybe restructure ESP_NOW packet "audi" field to an int with enumerated recipients
-
 Investigate the initial conditions of the volume and lastVolumeSent variables in BodyESP32_Receiver
 
-Create Enums for packet.a values
+ [BodyESP32_Receiver] TODO:  Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
 
-Investigate and better document how pamphlet dispenser code works! BodyESP32_Receiver/soundboard
+[BodyESP32_Receiver] Better document  pinout
 
-TODO: BodyESP32_Receiver Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
+[ALL] BETTER DOCUMENT PINOUTS 
 
-Better document BodyESP32_Receiver pinout 
+[BodyESP32_Receiver] implement dome rotation control.
 
-Add code to BodyESP32_Receiver packet receive callback function to receive input packets from the camera and send commands to the Dome motor.
+[BodyESP32_Receiver] Ensure that channel2 value of ~255 is achievable
 
-In BodyESP32_Receiver, enforce the resetting of channel4 value when stick is released.
+[HeadLEDController] TEST ADDED CODE: Replaced many calls to millis() with a time variable.
 
-In BodyESP32_Receiver, implement dome rotation control.
-
-Ensure that channel2 value of ~255 is achievable in BodyESP32_Receiver
-
-//TODO: HeadLEDController.ino PROVIDE GOOD EXPLANATION OF HOW PIN 7 is set and how that effects speed of talk
-
-TEST ADDED CODE: HeadLEDController. Replaced many calls to millis() with a time variable.
-
-TEST ADDED CODE: ControllerSoundboad. Replaced many calls to millis() with a time variable.
+[HeadAudioBoard/HeadAICam] Find and add pins for communicating between HeadAudioBoard and HeadAICam. If not enough pins, investigate I2C or maybe a 2 pin soln.
 
 LOW PRIORITY: Reimplement HeadLEDController back psi fading w/ improvements
 	HeadLEDController: TEST ADDED CODE: for fading, now updating brightess every 15ms
 
-Add microcontrollers to the file descriptions of every file.
-
-<ALL> move ESPNOW packet struct into R2D2_LIB.h
-
 ControllerSoundboard/BodyESP32_Receiver: investigate why 'incomingReadings' espnow packet variable isnt being used for OnDataRecv callback functions.
 [Seems to be Corrupting packets to be sent out]
 
-[HeadAudioBoard] /* TODO: Implement a way for audio board to know when emote mode/ AI mode has control of audio. Idea: periodic subscription packets w/ a timeout */
 
-[HeadAudioBoard] /* TODO: Implement an OnDataRecv function to send dome motor signals to BodyESP32_Receiver, so AI Camera can control Dome Motor. */
 
-[HeadLEDMatricies] Confirm Microcontroller is MKR-1000 and fix file banner
-
-[HeadLEDMatricies] Create array of matricies, add our matricies, turn 4 different for loops in loop() into 1.
-
-[Secondary_Motor_Driver] TODO: Implement Encoder Readings ?? Whats this mean?
-
-[Secondary_Motor_Driver] //TODO: Provide a good explanation of how the signals to the DROK motor controller works
-
-[ALL] Add nice pinout descriptions like how Secondary_Motor_Driver has.
 

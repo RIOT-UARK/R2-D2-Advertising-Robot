@@ -109,6 +109,8 @@ void setup() {
     return;
   }
 
+
+  // TODO: I DONT THINK THIS IS A CORRECT ORDER
   /*  Button Pins, in physical order from left to right   */
   pinMode(PIN_21, INPUT);
   pinMode(PIN_5, INPUT);
@@ -125,9 +127,6 @@ void setup() {
 
   digitalWrite(PIN_22, HIGH);
   */
-
-  //The soundboard will only be sending data to the Audio Player Board
-  packet.recipient = AUDIOBOARD;
 }
 
 /*----------------------------------------------------------------------
@@ -157,7 +156,8 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_5) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = 7;
+    packet.role = TRIGGER_PAMPHLET_DISPENSER_EVENT;
+    packet.recipient = BODY_ESP32_RECEIVER;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -165,7 +165,8 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_19) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = 4;
+    packet.role = PLAY_CHAT_AUDIO;
+    packet.recipient = AUDIOBOARD;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -173,7 +174,8 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_18) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = 1;
+    packet.role = PLAY_WORRIED_AUDIO;
+    packet.recipient = AUDIOBOARD;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -181,7 +183,8 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_17) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = 0;
+    packet.role = PLAY_EXCITE_AUDIO;
+    packet.recipient = AUDIOBOARD;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -189,7 +192,8 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_16) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = 3;
+    packet.role = PLAY_ACKNOWLEDGE_AUDIO;
+    packet.recipient = AUDIOBOARD;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -197,7 +201,8 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_2) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = 2;
+    packet.role = PLAY_SCREAM_AUDIO;
+    packet.recipient = AUDIOBOARD;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();
@@ -205,7 +210,8 @@ void loop() {
   }
 
   else if ((digitalRead(PIN_4) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = 6;
+    packet.role = TOGGLE_PROJECTOR_BULB;
+    packet.recipient = BODY_ESP32_RECEIVER;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();

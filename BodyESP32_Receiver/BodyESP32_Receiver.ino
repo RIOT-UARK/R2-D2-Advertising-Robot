@@ -117,8 +117,8 @@ int LeftDriveValue, RightDriveValue, DomeMotorValue, Motor4Value;
 // Last time an emote was sent to head
 unsigned long lastEmoteSent = 0;
 
-// Last time we sent an AICam Control On packet.
-unsigned long lastAICamControlOnPktSent = 0;
+// Last time we sent an AICam Control packet.
+unsigned long lastAICamControlPktSent = 0;
 
 unsigned long lastAICamPacketReceived = 0;
 
@@ -180,13 +180,6 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           Serial.write(0);
           break;
       }
-    }
-    if (packet.role == TOGGLE_PROJECTOR_BULB) {
-      projectorBulb = !projectorBulb;
-    }
-    if (packet.role == TRIGGER_PAMPHLET_DISPENSER_EVENT) {
-      pamphletDispenser = !pamphletDispenser;
-      turnPDOnFlag = true;
     }
 }
 
@@ -503,7 +496,6 @@ void loop() {
     }
     else {
       Serial.write(0);
-      // TODO: perhaps enforce a channel value reset???
     }
 
     if (ch2Value > -1 && ch2Value < 256) {
@@ -584,24 +576,17 @@ void loop() {
   Switch conditions for R2D2 to be in
   AI Cam Mode
   --------------------------------------------*/
-  if (ch7Value == 0  && ch8Value == 0 && ch9Value == 1 && ch10Value == 0) {
-    // If transitioning from AICam off to AICam on
-    if (AICamMode == false) {
+  if (ch7Value == 0  && ch8Value == 0 && ch9Value >= 1 && ch10Value == 0) {
+    // If transitioning from AICam off to AICam on or 
+    // If it's been more than 1.5 seconds since last Control On packet sent
+    if (AICamMode == false || (curTime - lastAICamControlPktSent >= 1500)) {
       packet.recipient = AUDIOBOARD;
       packet.role = AI_CAM_CONTROL_ON;
-      lastAICamControlOnPktSent = curTime;
+      lastAICamControlPktSent = curTime;
       esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
     }
 
     AICamMode = true;
-
-    // If it's been more than 1.5 seconds since last Control On packet sent
-    if (curTime - lastAICamControlOnPktSent >= 1500) {
-      packet.recipient = AUDIOBOARD;
-      packet.role = AI_CAM_CONTROL_ON;
-      lastAICamControlOnPktSent = curTime;
-      esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-    }
 
     if (curTime - lastAICamPacketReceived >= 650) {
       Serial.write(0);
@@ -609,10 +594,12 @@ void loop() {
 
   }
   else {
-    // If transitioning from AICam on to AICam off
-    if (AICamMode == true) {
+    // If transitioning from AICam on to AICam off or
+    // If it's been more than 5 seconds since last control Off packet sent
+    if (AICamMode == true || (curTime - lastAICamControlPktSent >= 5000)) {
       packet.recipient = AUDIOBOARD;
       packet.role = AI_CAM_CONTROL_OFF;
+      lastAICamControlPktSent = curTime;
       esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       Serial.write(0);
     }
@@ -657,8 +644,7 @@ void loop() {
 
   /*--------------------------------------------
   Control Pamphlet dispenser movement
-  TODO: investigate and better document how this works
-  Basically sends signal to secondary motor controller,
+  Sends signal to secondary motor controller,
   which handles driving PD motor
   --------------------------------------------*/
 

@@ -132,6 +132,8 @@ void setup() {
     pinMode(PIN_1, OUTPUT);
     // Signal to turn R2D2 Dome Right TODO: FIND PIN FOR THIS
     //pinMode(XXXXX, OUTPUT);
+    // Signal to indicate that AICam has control
+    //pinMode(XXXXX, INPUT);
 
 }
 
@@ -225,22 +227,29 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
           Serial.println(results[maxIndex].xMin());
           Serial.println(results[maxIndex].xMax());
           */
-        
-          // If closest face is to the right -> turn right
-          if (faceMiddle > 0.63) {
-            //digitalWrite(XXXXXX, HIGH);
-            digitalWrite(PIN_1, LOW);
-          }
-          // If closest face is to the left -> turn left
-          else if (faceMiddle < 0.37) {
+
+         // TODO: Remove these comments when I choose 2 new pins
+         //if (digitalRead(XXXXXX) == HIGH) {
+            // If closest face is to the right -> turn right
+            if (faceMiddle > 0.63) {
+              //digitalWrite(XXXXXX, HIGH);
+              digitalWrite(PIN_1, LOW);
+            }
+            // If closest face is to the left -> turn left
+            else if (faceMiddle < 0.37) {
+              //digitalWrite(XXXXX, LOW);
+              digitalWrite(PIN_1, HIGH);
+            }
+            // If face is centered on the camera -> don't turn
+            else {
             //digitalWrite(XXXXX, LOW);
-            digitalWrite(PIN_1, HIGH);
-          }
-          // If face is centered on the camera -> don't turn
-          else {
-          //digitalWrite(XXXXX, LOW);
+              digitalWrite(PIN_1, LOW);
+            } 
+         //}
+         else {
+            //digitalWrite(XXXXX, LOW);
             digitalWrite(PIN_1, LOW);
-          } 
+         }
 
         }
         
