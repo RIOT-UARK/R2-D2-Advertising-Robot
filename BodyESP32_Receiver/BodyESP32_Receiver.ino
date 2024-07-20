@@ -171,15 +171,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           break;
         case AI_CAM_TURN_DOME_LEFT:
           lastAICamPacketReceived = curTime;
-          Serial.write(-30);
+          sendSerialPacket((short)-30);
           break;
         case AI_CAM_TURN_DOME_RIGHT:
           lastAICamPacketReceived = curTime;
-          Serial.write(30);
+          sendSerialPacket(short(30));
           break;
         case AI_CAM_NO_DOME_TURN:
           lastAICamPacketReceived = curTime;
-          Serial.write(0);
+          sendSerialPacket((short)0);
           break;
       }
     }
@@ -421,6 +421,25 @@ void executeEmote4() {
   }
 }
 
+/*----------------------------------------------------------------------
+
+    sendSerialPacket
+
+      Sends custom 3-byte Serial packet. Fits a 16bit int and a 
+      terminator character equal to 3.
+
+----------------------------------------------------------------------*/
+
+void sendSerialPacket(short valToSend) {
+  // Pack short into outgoing packet
+  outgoingSerial[0] = (byte)((valToSend >> 8) & 0xff);
+  outgoingSerial[1] = (byte)(valToSend & 0xff);
+  // Send it
+  for (int i = 0; i < SERIAL_PKT_SIZE; i++) {
+        Serial.write(outgoingSerial[i]);
+  }
+}
+
 
 /*----------------------------------------------------------------------
 
@@ -454,6 +473,10 @@ void setup(){
     return;
   }
 
+  // Set end terminator of Serial 'packet.'
+  // This value should NEVER be changed.
+  outgoingSerial[2] = SERIAL_PKT_TERMINATOR; 
+
   // Set all pins as inputs
   pinMode(CH1, INPUT);
   pinMode(CH2, INPUT);
@@ -465,9 +488,6 @@ void setup(){
   pinMode(CH8, INPUT);
   pinMode(CH9, INPUT);
   pinMode(CH10, INPUT);
-
-// As of now, the only recipient of messages from this board will be the Audio board.
-  packet.recipient = AUDIOBOARD;
 
 // Attach interrupt callback functions to be called on high-low transitions.
   attachInterrupt(digitalPinToInterrupt(CH1), CH1Interrupt, CHANGE);
@@ -596,16 +616,15 @@ void loop() {
     //Channel 1 (Right stick) --> Turn Left/Right (Either -LMotor/+RMotor or just +1Motor forward )
     
     //DOME MOVEMENT
-    // 100Hz update rate for dome movement
-    if (curTime - lastCh4ValueSent > 10 ) {
+    if (curTime - lastCh4ValueSent > 10 ) {      // 100Hz update rate for dome movement
       //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
-      if (abs(ch4Value) > 15) { // If left stick not being pressed
-        Serial.write(ch4Value);
+      if (abs(ch4Value) < 15) { // If left stick not being pressed
+        ch4Value = 0;
       }
-      else {
-        Serial.write(0);
-      }
-    lastCh4ValueSent = curTime;
+
+      // Send Serial 'packet'
+      sendSerialPacket((short)ch4Value);
+      lastCh4ValueSent = curTime;
     }
 
     // DRIVE MOVEMENT
@@ -646,16 +665,32 @@ void loop() {
   --------------------------------------------*/
   if (ch7Value == 1 && ch8Value == 0 && ch9Value == 0 && ch10Value == 0) {
 
-    //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
-    if (abs(ch4Value) > 12) { // If left stick is being pressed
-      Serial.write(ch4Value);
+    //DOME MOVEMENT
+    if (curTime - lastCh4ValueSent > 10 ) {      // 100Hz update rate for dome movement
+      //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
+      if (abs(ch4Value) < 13) { // If left stick not being pressed
+        ch4Value = 0;
+      }
+
+      // Send Serial 'packet'
+      sendSerialPacket(short(ch4Value));
+      lastCh4ValueSent = curTime;
+      lastCh1ValueSent = curTime;
     }
-    //Channel 1 (Right stick) --> Turn Left/Right (dome motor)
-    else if (abs(ch1Value) > 12) {
-      Serial.write(ch1Value);
-    }
-    else {
-      Serial.write(0);
+    else if (curTime - lastCh1ValueSent > 10) {     // 100Hz update rate for dome movement
+      //Channel 1 (Right stick)  --> Turn Left/Right (dome motor)
+      if (abs(ch1Value) < 13) { // If left stick not being pressed
+        ch1Value = 0;
+      }
+      
+      // Pack ch1Value (sint16) into Serial 'packet' 
+      outgoingSerial[0] = (byte)((ch1Value >> 8) & 0xff);
+      outgoingSerial[1] = (byte)(ch1Value & 0xff);
+
+      // Send Serial 'packet'
+      sendSerialPacket((short)ch1Value);
+      lastCh4ValueSent = curTime;
+      lastCh1ValueSent = curTime;
     }
   }
 
@@ -744,7 +779,7 @@ void loop() {
     AICamMode = true;
 
     if (curTime - lastAICamPacketReceived >= 650) {
-      Serial.write(0);
+      sendSerialPacket((short)0);
     }
 
   }
@@ -756,7 +791,7 @@ void loop() {
       packet.role = AI_CAM_CONTROL_OFF;
       lastAICamControlPktSent = curTime;
       esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-      Serial.write(0);
+      sendSerialPacket((short)0);
     }
 
     AICamMode = false;
@@ -778,15 +813,22 @@ void loop() {
     ledcDetachPin(PIN_26);
     ledcDetachPin(PIN_27);
 
-    // Stop Dome Motor
-    Serial.write(0);
+    sendSerialPacket((short)SERIAL_PKT_EMERGENCY_DISCONNECT);
+
+    delay(10);
+
+    // Try stopping Dome Motor in case Emergency disconnect packet didn't work
+    for (int i = 0; i < 10; i++) {
+      sendSerialPacket((short)0);
+      delay(10);
+    }
 
     // Disconnect serial communication to Dome Motor
     Serial.end();
 
     // Enter an inescapable superloop
     while (1) {
-    // DO NOT PUT ANY CODE HERE. THIS LOOP IS MEANT TO STOP ALL EXECUTION
+      // DO NOT PUT ANY CODE HERE. THIS LOOP IS MEANT TO STOP ALL EXECUTION
     }
   }
 

@@ -111,6 +111,17 @@ enum PACKET_RECIPIENTS {
 };
 
 /*---------------------------------------------------
+    Enums for the custom Serial packet used to 
+    communicate between BodyESP32_Receiver and
+    Secondary_Motor_Driver
+---------------------------------------------------*/
+enum SERIAL_PKT_ENUMS {
+    SERIAL_PKT_TERMINATOR   = 3,
+    SERIAL_PKT_SIZE         = 3,
+    SERIAL_PKT_EMERGENCY_DISCONNECT = -8714     /* Random number that should be utterly unachievable */
+};
+
+/*---------------------------------------------------
     The Current Emote State in BodyESP32_Receiver
 ---------------------------------------------------*/
 enum CURRENT_EMOTE_MODES {
@@ -119,4 +130,17 @@ enum CURRENT_EMOTE_MODES {
     EMOTE_2,
     EMOTE_3,
     EMOTE_4
+};
+
+/*---------------------------------------------------
+    Pamphlet Dispenser Stages
+---------------------------------------------------*/
+enum PAMPHLET_DISP_STAGES {
+    DOOR_CLOSED_PD_READY,
+    LOAD_PAMPHLET_OPEN_DOOR,
+    FEED_PAPER_OUT,
+    PAPER_IS_OUT_WAIT,
+    WAIT_FOR_USER_INPUT,
+    CLOSE_DOOR_END_CYCLE
+
 };

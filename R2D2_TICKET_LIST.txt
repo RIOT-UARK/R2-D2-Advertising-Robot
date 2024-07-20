@@ -7,6 +7,8 @@ R2D2 SOFTWARE TICKET LIST:
 [HeadAudioBoard/HeadAICam] Find and add pins for communicating between HeadAudioBoard and HeadAICam. If not enough pins, investigate I2C or maybe a 2 pin soln.
 
 [BodyESP32_Receiver] HIGH PRIORITY: ESP32 spews garbage over serial on startup. You can connect Pin 15 to ground to prevent this, or we can investigate a better/safer way to communicate with secondary motor driver
+[BodyESP32_Receiver] HIGH PRIORITY: Enforce timing on sending motor signals (100Hz)
+[BodyESP32_Receiver] Add interrupt function deregistration to emergency disconnect.
 [3-Byte Serial Transmission]: Arduino Uno can handle ~500Hz update rate while unburdened. Targeting 100Hz.
 [BodyESP32_Receiver] Better document  pinout
 [BodyESP32_Receiver] Ensure that channel2 value of ~255 is achievable
@@ -25,3 +27,6 @@ R2D2 SOFTWARE TICKET LIST:
 [Secondary_Motor_Driver] Enumerate PD stages
 [Secondary_Motor_Driver/BodyESP32_Receiver] Emergency Disconnect, enumerated number over serial connection
 [Secondary_Motor_Driver] Emergency Disconnect if receiving a lot of garbage.
+
+[TEST] Test Emergency Disconnect
+[TEST] Test New Serial Connection Protocol

@@ -60,14 +60,32 @@ Arduino Uno -> Pamphlet Dispenser Door Servo Motor
 
 unsigned long curTime;            /* current time, time since boot in ms           */
 unsigned long timeOfLastRec;      /* Time since last drive signal received         */
-int driveValue;                   /* Drive signal to send to dome motor controller */
+short driveValue;                 /* Drive signal to send to dome motor controller */
 unsigned long timeOfLastPam = 0;  /* Time of last pamphlet staging event           */
 int stage = 0;                    /* Pamphlet dispenser pamphlet feeding stage     */
+char incomingSerial[3];           /* Serial communication 'packet'                 */
+unsigned short badPktCounter = 0; /* How many invalid packets have we received     */
+bool DomeMovementEnabled = true;  /* To turn off dome movement if too many bad pkts*/
 
 //bool forwardReverse = true; //true = pamphlet dispenser forward, false = backwards
 //bool pamReady = true;
 
 Servo servo;                      /* Pamphlet door servo                           */
+
+
+void emergencyDisconnect() {
+  // Disconnect everything
+  digitalWrite(PIN_2, LOW);
+  digitalWrite(PIN_4, LOW);
+  analogWrite(PIN_3, 0);
+  analogWrite(PIN_6, 0);
+  servo.detach();
+  
+  // Enter an inescapable superloop
+  while (1) {
+    // DO NOT PUT ANY CODE HERE. THIS LOOP IS MEANT TO STOP ALL EXECUTION
+  }
+}
 
 
 /*----------------------------------------------------------------------
@@ -104,10 +122,13 @@ void setup() {
 void loop() {
   curTime = millis();
  
-  if (Serial.available() > 0) {
-      driveValue = Serial.read();  
+  if (Serial.available() > 0 && DomeMovementEnabled) {
+
+      //Receive 3 byte serial packet containing driveValue
+      Serial.readBytesUntil(SERIAL_PKT_TERMINATOR, incomingSerial, SERIAL_PKT_SIZE);
+      driveValue = word( incomingSerial[0], incomingSerial[1] );
+
       timeOfLastRec = curTime;
-    //Serial.println(driveValue);
     //TODO: Provide a good explanation of how the signals to the DROK motor controller works
     // and setting pins 2 and 4 control direction/braking
 
@@ -121,8 +142,17 @@ void loop() {
       digitalWrite(PIN_4, LOW);
       driveValue = int(((240 - float(driveValue)) * 255.0) / 85.0);   
       }
+    // If we receive emergency disconnect signal
+    else if (driveValue == SERIAL_PKT_EMERGENCY_DISCONNECT) {
+      emergencyDisconnect();
+    }
     else {
+      badPktCounter++;
       driveValue = 0;
+
+      if (badPktCounter >= 750) {
+        DomeMovementEnabled = false;    
+      }
     }
   
   // Write Dome driveValue as PWM to motor controller
@@ -165,14 +195,14 @@ void loop() {
   PAMPHLET DISPENSER + DOOR SERVO MOTOR CONTROL
 --------------------------------------------------------------------------------------*/
 
-  if (stage == 0) {            // Door is closed and Pamphlet Dispenser is ready to receive signal from controller
+  if (stage == DOOR_CLOSED_PD_READY) {            // Door is closed and Pamphlet Dispenser is ready to receive signal from controller
     // If receiving signal from receiver and has been >1sec since last pamphlet event
     if (digitalRead(PIN_5) == HIGH && (curTime - timeOfLastPam > 1000)) {
       stage++;
       timeOfLastPam = curTime;
     }
   }
-  else if (stage == 1) {       // Signal to print has been received. Load a pamphlet in paper feeder (move motor in one direction) and open the door
+  else if (stage == LOAD_PAMPHLET_OPEN_DOOR) {    // Signal to print has been received. Load a pamphlet in paper feeder (move motor in one direction) and open the door
     digitalWrite(PIN_7, LOW);         // Motor Controller feed motor direction
     digitalWrite(PIN_8, HIGH);    
     servo.write(90);                  // Pamphlet door servo position
@@ -181,7 +211,7 @@ void loop() {
       stage++;
     }
   }
-  else if (stage == 2) {      // Feed the paper out of the pamphlet dispenser.
+  else if (stage == FEED_PAPER_OUT) {             // Feed the paper out of the pamphlet dispenser.
     digitalWrite (PIN_7, HIGH);       // Motor Controller feed motor direction
     digitalWrite (PIN_8, LOW);
     servo.write(90);              // Pamphlet door servo position
@@ -190,7 +220,7 @@ void loop() {
       stage++;
     }
   }
-  else if (stage == 3) {      // Stop the paper feeder motor when the paper is just about out of the dispenser.
+  else if (stage == PAPER_IS_OUT_WAIT) {          // Stop the paper feeder motor when the paper is just about out of the dispenser.
     digitalWrite(PIN_7, LOW);         // Motor Controller feed motor direction
     digitalWrite(PIN_8, LOW);
     analogWrite(PIN_6, 0);            // PWM Speed signal to pamphlet feed motor
@@ -198,17 +228,17 @@ void loop() {
       stage++;
     }
   }
-  else if (stage == 4) {      // Wait for an additional button press from the controller to signal to close the door
+  else if (stage == WAIT_FOR_USER_INPUT) {        // Wait for an additional button press from the controller to signal to close the door
     if (digitalRead(PIN_5) == HIGH) {
       servo.write(0);             // Pamphlet door servo position
       stage++;
       timeOfLastPam = curTime;
     }
   }
-  else if (stage == 5) {      //Wait for the door to close and go back to stage 0: waiting for another pamphlet dispensing command
+  else if (stage == CLOSE_DOOR_END_CYCLE) {      //Wait for the door to close and go back to stage 0: waiting for another pamphlet dispensing command
     servo.write(0);               // Pamphlet door servo position
     if (curTime - timeOfLastPam > 1100) {
-      stage = 0;
+      stage = DOOR_CLOSED_PD_READY;
       timeOfLastPam = curTime;
     }
   }
