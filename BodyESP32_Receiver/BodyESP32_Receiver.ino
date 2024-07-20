@@ -21,7 +21,7 @@ TODO: Implement the following modes controlled by Switches 7-10: Drive, Dome rot
 ESP32 to Motor Controllers pinout
   PIN 26 --> SIGNAL INPUT FOR L Side of Drive Motor Controller (White Wire)
   PIN 27 --> SIGNAL INPUT FOR R Side of Drive Motor Controller (2.54 dupont labelled 'S')
-  RX --> TX ON ARDUINO NANO (HOPEFULLY I WILL CHANGE THIS FROM SERIAL COMM TO smthing else)
+      RX --> TX ON ARDUINO NANO (HOPEFULLY I WILL CHANGE THIS FROM SERIAL COMM TO smthing else)
   TODO: Better document pinout
 
 */
@@ -100,7 +100,15 @@ volatile bool             CH10NewPulseDurAvailable = false;
 unsigned long curTime = 0;                      /* Current time, in ms */
 
 // Ints to represent controller's stick positions, 3 way switch, and potentiometer values
-int ch1Value, ch2Value, ch3Value, ch4Value, ch5Value, ch6Value, ch9Value;
+int ch2Value, ch3Value, ch5Value, ch6Value, ch9Value;
+
+//CAUTION: CH1VALUE AND CH4VALUE USED TO BE INTS. ENSURE THIS DOESN'T CAUSE
+//UNFORSEEN CONSEQUENCES
+short ch1Value, ch4Value;
+unsigned long lastCh1ValueSent = 0;
+unsigned long lastCh4ValueSent = 0;
+//Outgoing Serial 'packet' for communication with Secondary Motor Driver
+byte outgoingSerial[3];
 
 int lastVolumeSent = 0;                         /* For tracking volume sent to audio board */
 
@@ -109,7 +117,7 @@ bool ch7Value;
 bool ch8Value;
 bool ch10Value;
 
-int LeftDriveValue, RightDriveValue, DomeMotorValue, Motor4Value; /* Ints to be sent to Motor Controllers*/
+int LeftDriveValue, RightDriveValue;            /* Ints to be sent to Motor Controllers*/
 
 unsigned long lastEmoteSent = 0;                /* Last time an emote was sent to head */
 
@@ -120,7 +128,7 @@ unsigned long lastAICamControlPktSent = 0;      /* Last time we sent an AICam Co
 unsigned long lastAICamPacketReceived = 0;      /* Last time we received an AICam Driving packet */
 
 bool projectorBulb = false;                     /* Controls mosfet for projector bulb */
-unsigned long lastProjectorStatus = 0;
+unsigned long lastProjectorStatus = 0;          /* Last time projector was toggled    */
 
 // Control signals for pamphlet dispenser
 bool pamphletDispenser = false;
@@ -588,12 +596,16 @@ void loop() {
     //Channel 1 (Right stick) --> Turn Left/Right (Either -LMotor/+RMotor or just +1Motor forward )
     
     //DOME MOVEMENT
-    //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
-    if (abs(ch4Value) > 15) { // If left stick not being pressed
-      Serial.write(ch4Value);
-    }
-    else {
-      Serial.write(0);
+    // 100Hz update rate for dome movement
+    if (curTime - lastCh4ValueSent > 10 ) {
+      //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
+      if (abs(ch4Value) > 15) { // If left stick not being pressed
+        Serial.write(ch4Value);
+      }
+      else {
+        Serial.write(0);
+      }
+    lastCh4ValueSent = curTime;
     }
 
     // DRIVE MOVEMENT
@@ -800,6 +812,7 @@ void loop() {
     digitalWrite(PIN_32, LOW);
   }
   // Send projector status to soundboard every 5 seconds
+  // Controls LED status indicator on controller soundboard
   if (curTime - lastProjectorStatus > 5000) {
     if (projectorBulb) {
       packet.role = SET_SOUNDBOARD_LED_HIGH;

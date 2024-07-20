@@ -1,32 +1,27 @@
 R2D2 SOFTWARE TICKET LIST:
 
-ADD NUMBERING TO TICKETS AND ADD NUMBERS IN CODE COMMENTS!!!
-
-Investigate the initial conditions of the volume and lastVolumeSent variables in BodyESP32_Receiver
-
- [BodyESP32_Receiver] TODO:  Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
-
-[BodyESP32_Receiver] Better document  pinout
-
-[BodyESP32_Receiver] Implement Emote Modes
-
 [ALL] BETTER DOCUMENT PINOUTS 
-
-[BodyESP32_Receiver] implement dome rotation control.
-
-[BodyESP32_Receiver] Ensure that channel2 value of ~255 is achievable
-
-[HeadLEDController] TEST ADDED CODE: Replaced many calls to millis() with a time variable.
-
-[HeadAudioBoard/HeadAICam] Find and add pins for communicating between HeadAudioBoard and HeadAICam. If not enough pins, investigate I2C or maybe a 2 pin soln.
-
-LOW PRIORITY: Reimplement HeadLEDController back psi fading w/ improvements
-	HeadLEDController: TEST ADDED CODE: for fading, now updating brightess every 15ms
-
-ControllerSoundboard/BodyESP32_Receiver: investigate why 'incomingReadings' espnow packet variable isnt being used for OnDataRecv callback functions.
-[Seems to be Corrupting packets to be sent out]
-
-[Secondary_Motor_Driver] Tune PD Servo values.
+[ALL] Remove unused variables
 
 [AUDIOBOARD] Receive TRIGGER_EMOTE packets
+[HeadAudioBoard/HeadAICam] Find and add pins for communicating between HeadAudioBoard and HeadAICam. If not enough pins, investigate I2C or maybe a 2 pin soln.
 
+[BodyESP32_Receiver] HIGH PRIORITY: ESP32 spews garbage over serial on startup. You can connect Pin 15 to ground to prevent this, or we can investigate a better/safer way to communicate with secondary motor driver
+[3-Byte Serial Transmission]: Arduino Uno can handle ~500Hz update rate while unburdened. Targeting 100Hz.
+[BodyESP32_Receiver] Better document  pinout
+[BodyESP32_Receiver] Ensure that channel2 value of ~255 is achievable
+[BodyESP32_Receiver] implement dome rotation control.
+[BodyESP32_Receiver] Implement Emote Modes
+[BodyESP32_Receiver] Investigate the initial conditions of the volume and lastVolumeSent variables
+[BodyESP32_Receiver] TODO:  Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
+
+[ControllerSoundboard/BodyESP32_Receiver]: investigate why 'incomingReadings' espnow packet variable isnt being used for OnDataRecv callback functions. [Seems to be Corrupting packets to be sent out]
+
+[HeadLEDController ]LOW PRIORITY: Reimplement  back psi fading w/ improvements
+[HeadLEDController] TEST ADDED CODE: Replaced many calls to millis() with a time variable.
+[HeadLEDController]: TEST ADDED CODE: for fading, now updating brightess every 15ms
+
+[Secondary_Motor_Driver] Tune PD Servo values.
+[Secondary_Motor_Driver] Enumerate PD stages
+[Secondary_Motor_Driver/BodyESP32_Receiver] Emergency Disconnect, enumerated number over serial connection
+[Secondary_Motor_Driver] Emergency Disconnect if receiving a lot of garbage.

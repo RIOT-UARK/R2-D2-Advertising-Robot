@@ -129,7 +129,7 @@ void loop() {
   analogWrite(PIN_3, driveValue);
   }
 
-  if ((curTime - timeOfLastRec) > 200) { //If not recieving signal from controller, stop the motor.
+  if ((curTime - timeOfLastRec) > 750) { //If not recieving signal from controller, stop the motor.
     digitalWrite(PIN_2, LOW);
     digitalWrite(PIN_4, LOW);
     analogWrite(PIN_3, 0);
