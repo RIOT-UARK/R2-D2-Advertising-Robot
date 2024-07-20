@@ -97,33 +97,29 @@ volatile unsigned long    CH10PulseBegin = 0;
 volatile unsigned long    CH10PulseEnd = 0;
 volatile bool             CH10NewPulseDurAvailable = false;
 
-// Current time, in ms
-unsigned long curTime = 0;
+unsigned long curTime = 0;                      /* Current time, in ms */
 
 // Ints to represent controller's stick positions, 3 way switch, and potentiometer values
 int ch1Value, ch2Value, ch3Value, ch4Value, ch5Value, ch6Value, ch9Value;
 
-//For tracking volume sent to audio board
-int lastVolumeSent = 0;
+int lastVolumeSent = 0;                         /* For tracking volume sent to audio board */
 
 // Bool to represent 2-way switches value
 bool ch7Value;
 bool ch8Value;
 bool ch10Value;
 
-// Ints to be sent to Motor Controllers
-int LeftDriveValue, RightDriveValue, DomeMotorValue, Motor4Value;
+int LeftDriveValue, RightDriveValue, DomeMotorValue, Motor4Value; /* Ints to be sent to Motor Controllers*/
 
-// Last time an emote was sent to head
-unsigned long lastEmoteSent = 0;
+unsigned long lastEmoteSent = 0;                /* Last time an emote was sent to head */
 
-// Last time we sent an AICam Control packet.
-unsigned long lastAICamControlPktSent = 0;
+unsigned int curEmoteMode = NO_EMOTE;           /* Current Emote mode */
 
-unsigned long lastAICamPacketReceived = 0;
+unsigned long lastAICamControlPktSent = 0;      /* Last time we sent an AICam Control packet. */
 
-// Controls mosfet for projector bulb
-bool projectorBulb = false;
+unsigned long lastAICamPacketReceived = 0;      /* Last time we received an AICam Driving packet */
+
+bool projectorBulb = false;                     /* Controls mosfet for projector bulb */
 unsigned long lastProjectorStatus = 0;
 
 // Control signals for pamphlet dispenser
@@ -131,16 +127,14 @@ bool pamphletDispenser = false;
 bool turnPDOnFlag = false;
 unsigned long lastPamphletDispenserStatus = 0;
 
-// Whether or not we're in AICamMode
-bool AICamMode;
+bool AICamMode;                                 /* Whether or not we're in AICamMode */
 
 // ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-//ESP NOW packet for outbound wireless communications
-struct_message packet;
-//packet that is received
-struct_message incomingReadings;
+struct_message packet;                          /* ESP NOW packet for outbound wireless communications */
+
+struct_message incomingReadings;                /* packet that is received */
 
 esp_now_peer_info_t peerInfo;
 
@@ -312,6 +306,110 @@ void CH10Interrupt() {
     // stop measuring
     CH10PulseEnd = micros();
     CH10NewPulseDurAvailable = true;
+  }
+}
+
+
+/*----------------------------------------------------------------------
+
+    executeEmote1
+
+      Triggers Emote 1
+
+----------------------------------------------------------------------*/
+
+void executeEmote1() {
+  long timeSinceEmoteStart = curTime - timeSinceEmoteStart;
+
+  if (timeSinceEmoteStart <= 1000) {
+    //Set servos, send commands, etc
+  }
+  else if (timeSinceEmoteStart <= 2500) {
+    
+  }
+  else if (timeSinceEmoteStart <= 4500) {
+    
+  }
+  else {
+    curEmoteMode = NO_EMOTE;
+  }
+}
+
+
+/*----------------------------------------------------------------------
+
+    executeEmote2
+
+      Triggers Emote 2
+
+----------------------------------------------------------------------*/
+
+void executeEmote2() {
+  long timeSinceEmoteStart = curTime - timeSinceEmoteStart;
+
+  if (timeSinceEmoteStart <= 1000) {
+    //Set servos, send commands, etc
+  }
+  else if (timeSinceEmoteStart <= 2500) {
+    
+  }
+  else if (timeSinceEmoteStart <= 4500) {
+    
+  }
+  else {
+    curEmoteMode = NO_EMOTE;
+  }
+}
+
+
+/*----------------------------------------------------------------------
+
+    executeEmote3
+
+      Triggers Emote 3
+
+----------------------------------------------------------------------*/
+
+void executeEmote3() {
+  long timeSinceEmoteStart = curTime - timeSinceEmoteStart;
+
+  if (timeSinceEmoteStart <= 1000) {
+    //Set servos, send commands, etc
+  }
+  else if (timeSinceEmoteStart <= 2500) {
+    
+  }
+  else if (timeSinceEmoteStart <= 4500) {
+    
+  }
+  else {
+    curEmoteMode = NO_EMOTE;
+  }
+}
+
+
+/*----------------------------------------------------------------------
+
+    executeEmote4
+
+      Triggers Emote 4
+
+----------------------------------------------------------------------*/
+
+void executeEmote4() {
+  long timeSinceEmoteStart = curTime - timeSinceEmoteStart;
+
+  if (timeSinceEmoteStart <= 1000) {
+    //Set servos, send commands, etc
+  }
+  else if (timeSinceEmoteStart <= 2500) {
+    
+  }
+  else if (timeSinceEmoteStart <= 4500) {
+    
+  }
+  else {
+    curEmoteMode = NO_EMOTE;
   }
 }
 
@@ -498,24 +596,36 @@ void loop() {
       Serial.write(0);
     }
 
-    if (ch2Value > -1 && ch2Value < 256) {
-      int LMotorPulseWidth, RMotorPulseWidth;
+    // DRIVE MOVEMENT
+    if (ch2Value > -1 && ch2Value < 256) {      /* if ch2 value in reasonable range     */
 
-      if (abs(ch1Value) > 12) {
-        LMotorPulseWidth = ch2Value + (float(ch1Value) * 0.1); //NOTE: Maybe implement dead zones for ch1.
-        RMotorPulseWidth = ch2Value - (float(ch1Value) * 0.1);
+      if (abs(ch1Value) > 12) {                 /* if ch1 value is outside of deadzone  */
+        LeftDriveValue = ch2Value + (float(ch1Value) * 0.1);
+        RightDriveValue = ch2Value - (float(ch1Value) * 0.1);
       }
-      else {
-        LMotorPulseWidth = ch2Value;
-        RMotorPulseWidth = ch2Value;
+      else if (abs(ch2Value) > 10 ) {           /* if ch2 is outsize of deadzone        */
+        LeftDriveValue = ch2Value;
+        RightDriveValue = ch2Value;
       }
-      ledcWrite(0, LMotorPulseWidth);
-      ledcWrite(1, RMotorPulseWidth);
+      else {                                    /* If both sticks in deadzone           */
+        LeftDriveValue = 127;
+        RightDriveValue = 127;
+      }
+      ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.          */
+      ledcWrite(1, RightDriveValue);
     }
-    else {
-      ledcWrite(CHANNEL_0, 127);
-      ledcWrite(CHANNEL_1, 127);
+    else {                                      /* If ch2 value is bad, send no drive   */
+      LeftDriveValue = 127;
+      RightDriveValue = 127;
+      ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.           */
+      ledcWrite(1, RightDriveValue);
     }
+  }
+  else if ((LeftDriveValue != 127 || RightDriveValue != 127)) { /* Enforce no driving when not in drive mode. */
+    LeftDriveValue = 127;
+    RightDriveValue = 127;
+    ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.             */
+    ledcWrite(1, RightDriveValue);
   }
 
   /*--------------------------------------------
@@ -523,8 +633,18 @@ void loop() {
   DOME ROTATION ONLY MODE
   --------------------------------------------*/
   if (ch7Value == 1 && ch8Value == 0 && ch9Value == 0 && ch10Value == 0) {
-  //Channel 1 --> Turn Dome Left/Right
-  // TODO: IMPLEMENT DOME ROTATION MODE
+
+    //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
+    if (abs(ch4Value) > 12) { // If left stick is being pressed
+      Serial.write(ch4Value);
+    }
+    //Channel 1 (Right stick) --> Turn Left/Right (dome motor)
+    else if (abs(ch1Value) > 12) {
+      Serial.write(ch1Value);
+    }
+    else {
+      Serial.write(0);
+    }
   }
 
   /*--------------------------------------------
@@ -536,12 +656,10 @@ void loop() {
   //Move joysticks all the way to one direction to trigger an emote.
   //Break emote functions out into functions above the main loop
 
-  //if an emote is selected -> packet.role = 2;
-  //then -> esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-
     if ( curTime - lastEmoteSent > 5000 ) {
       //Right stick left
       if (ch1Value < -92) {
+        curEmoteMode = EMOTE_1;
         packet.role = TRIGGER_EMOTE_XXXXX1;
         packet.recipient = AUDIOBOARD;
         lastEmoteSent = curTime;
@@ -549,6 +667,7 @@ void loop() {
       }
       //Right stick right
       else if (ch1Value > 92) {
+        curEmoteMode = EMOTE_2;
         packet.role = TRIGGER_EMOTE_XXXXX2;
         packet.recipient = AUDIOBOARD;
         lastEmoteSent = curTime;
@@ -556,6 +675,7 @@ void loop() {
       }
       //Right stick down
       else if (ch2Value < 25) {
+        curEmoteMode = EMOTE_3;
         packet.role = TRIGGER_EMOTE_XXXXX3;
         packet.recipient = AUDIOBOARD;
         lastEmoteSent = curTime;
@@ -563,13 +683,36 @@ void loop() {
       }
       //Right stick up
       else if (ch2Value > 228) {  // TODO: CHECK TO MAKE SURE THIS VALUE IS ACHIEVABLE
+        curEmoteMode = EMOTE_4;
         packet.role = TRIGGER_EMOTE_XXXXX4;
         packet.recipient = AUDIOBOARD;
         lastEmoteSent = curTime;
         esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
       }
-    
     }
+
+    switch (curEmoteMode) {
+      case NO_EMOTE:
+        break;
+      case EMOTE_1:
+        executeEmote1();
+        break;
+      case EMOTE_2:
+        executeEmote2();
+        break;
+      case EMOTE_3:
+        executeEmote3();
+        break;
+      case EMOTE_4:
+        executeEmote4();
+        break;
+      default:
+        break;
+    }
+  }
+  // If we change modes in the middle of an emote, immediately stop 
+  else {
+    curEmoteMode = NO_EMOTE;
   }
 
   /*--------------------------------------------
@@ -606,6 +749,33 @@ void loop() {
 
     AICamMode = false;
 
+  }
+
+  /*--------------------------------------------
+  Switch conditions for R2D2 to be in
+  EMERGENCY DISCONNECT MODE
+  --------------------------------------------*/
+  if (ch7Value == 1 && ch8Value == 1 && ch9Value == 1 && ch10Value == 1) {
+
+    // Stop Drive Motors
+    LeftDriveValue = 127;
+    RightDriveValue = 127;
+    ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.             */
+    ledcWrite(1, RightDriveValue);
+    // Detach DriveValue pins
+    ledcDetachPin(PIN_26);
+    ledcDetachPin(PIN_27);
+
+    // Stop Dome Motor
+    Serial.write(0);
+
+    // Disconnect serial communication to Dome Motor
+    Serial.end();
+
+    // Enter an inescapable superloop
+    while (1) {
+    // DO NOT PUT ANY CODE HERE. THIS LOOP IS MEANT TO STOP ALL EXECUTION
+    }
   }
 
   /*--------------------------------------------
@@ -650,7 +820,7 @@ void loop() {
 
   if (pamphletDispenser && turnPDOnFlag && (curTime - lastPamphletDispenserStatus > 1000)) {
     digitalWrite(PIN_33, HIGH);
-    lastPamphletDispenserStatus  = curTime;
+    lastPamphletDispenserStatus = curTime;
     turnPDOnFlag = false;
   }
   else if (pamphletDispenser && !turnPDOnFlag && (curTime - lastPamphletDispenserStatus > 1000)) {

@@ -109,3 +109,14 @@ enum PACKET_RECIPIENTS {
     CONTROLLER_SOUNDBOARD,
     BODY_ESP32_RECEIVER
 };
+
+/*---------------------------------------------------
+    The Current Emote State in BodyESP32_Receiver
+---------------------------------------------------*/
+enum CURRENT_EMOTE_MODES {
+    NO_EMOTE,
+    EMOTE_1,
+    EMOTE_2,
+    EMOTE_3,
+    EMOTE_4
+};

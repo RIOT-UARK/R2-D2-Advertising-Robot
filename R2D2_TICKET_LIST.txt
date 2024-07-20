@@ -8,6 +8,8 @@ Investigate the initial conditions of the volume and lastVolumeSent variables in
 
 [BodyESP32_Receiver] Better document  pinout
 
+[BodyESP32_Receiver] Implement Emote Modes
+
 [ALL] BETTER DOCUMENT PINOUTS 
 
 [BodyESP32_Receiver] implement dome rotation control.
@@ -24,6 +26,7 @@ LOW PRIORITY: Reimplement HeadLEDController back psi fading w/ improvements
 ControllerSoundboard/BodyESP32_Receiver: investigate why 'incomingReadings' espnow packet variable isnt being used for OnDataRecv callback functions.
 [Seems to be Corrupting packets to be sent out]
 
+[Secondary_Motor_Driver] Tune PD Servo values.
 
-
+[AUDIOBOARD] Receive TRIGGER_EMOTE packets
 
