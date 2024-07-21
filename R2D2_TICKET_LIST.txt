@@ -2,8 +2,11 @@ R2D2 SOFTWARE TICKET LIST:
 
 [ALL] BETTER DOCUMENT PINOUTS 
 [ALL] Remove unused variables
+[All] Perhaps make configurable gain values in R2D2_LIB. E.g: stick dead zone, motor drive speed, etc.
+[All] ENSURE there is both a received ESP NOW packet struct and an outgoing packet struct
 
 [AUDIOBOARD] Receive TRIGGER_EMOTE packets
+[HeadAudioBoard] Make Audio play packets timing based, rather than delay based.
 [HeadAudioBoard/HeadAICam] Find and add pins for communicating between HeadAudioBoard and HeadAICam. If not enough pins, investigate I2C or maybe a 2 pin soln.
 
 [BodyESP32_Receiver] HIGH PRIORITY: ESP32 spews garbage over serial on startup. You can connect Pin 15 to ground to prevent this, or we can investigate a better/safer way to communicate with secondary motor driver
@@ -30,3 +33,5 @@ R2D2 SOFTWARE TICKET LIST:
 
 [TEST] Test Emergency Disconnect
 [TEST] Test New Serial Connection Protocol
+
+[Code Review] AI CAM Mode interaction

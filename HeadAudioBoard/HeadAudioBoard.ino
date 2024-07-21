@@ -49,8 +49,9 @@ const char* ext="mp3";
 // ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-//ESP NOW wireless communication packet
+//ESP NOW wireless communication packets
 struct_message packet;
+struct_message recPacket;
 esp_now_peer_info_t peerInfo;
 
 //counter variables for iterating through sound categories
@@ -97,13 +98,13 @@ AudioPlayer player(source, kit, decoder);
  has control of audio. Idea: periodic subscription packets w/ a timeout */
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-  memcpy(&packet, incomingData, sizeof(packet));
+  memcpy(&recPacket, incomingData, sizeof(recPacket));
 
-  if (packet.recipient == AUDIOBOARD) {      /* if HeadAudioBoard is the packet recipient */
-    switch (packet.role) {
+  if (recPacket.recipient == AUDIOBOARD) {      /* if HeadAudioBoard is the packet recipient */
+    switch (recPacket.role) {
       // Volume change packet.
       case VOLUME_HAS_CHANGED:
-        volTmp = float(packet.vol) / 100;
+        volTmp = float(recPacket.vol) / 100.0;
         player.setVolume(volTmp);
         break;
       // Soundboard packet
@@ -205,6 +206,25 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         AICamControl = false;
         //digitalWrite(PIN_XX, LOW); TODO: NEED TO ASSIGN THIS PIN
         lastAICamControlPkt = curTime;
+        break;
+      case TRIGGER_EMOTE_XXXXX1:
+        // Play an audio
+        // Light up LEDs for a given time
+        break;
+      case TRIGGER_EMOTE_XXXXX2:
+        // Play an audio
+        // Light up LEDs for a given time
+        break;
+      case TRIGGER_EMOTE_XXXXX3:
+        // Play an audio
+        // Light up LEDs for a given time
+        break;
+      case TRIGGER_EMOTE_XXXXX4:
+        // Play an audio
+        // Light up LEDs for a given time
+        break;
+      default:
+        break;
     }
   
   }

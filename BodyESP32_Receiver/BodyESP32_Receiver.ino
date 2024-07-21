@@ -97,7 +97,7 @@ volatile unsigned long    CH10PulseBegin = 0;
 volatile unsigned long    CH10PulseEnd = 0;
 volatile bool             CH10NewPulseDurAvailable = false;
 
-unsigned long curTime = 0;                      /* Current time, in ms */
+unsigned long curTime = 0;                      /* Current time, in ms                        */
 
 // Ints to represent controller's stick positions, 3 way switch, and potentiometer values
 int ch2Value, ch3Value, ch5Value, ch6Value, ch9Value;
@@ -110,39 +110,41 @@ unsigned long lastCh4ValueSent = 0;
 //Outgoing Serial 'packet' for communication with Secondary Motor Driver
 byte outgoingSerial[3];
 
-int lastVolumeSent = 0;                         /* For tracking volume sent to audio board */
+int lastVolumeSent = 0;                         /* For tracking volume sent to audio board    */
 
 // Bool to represent 2-way switches value
 bool ch7Value;
 bool ch8Value;
 bool ch10Value;
 
-int LeftDriveValue, RightDriveValue;            /* Ints to be sent to Motor Controllers*/
+int LeftDriveValue, RightDriveValue;            /* Ints to be sent to Motor Controllers       */
 
-unsigned long lastEmoteSent = 0;                /* Last time an emote was sent to head */
+unsigned long lastDriveValueSent = 0;           /* Last time a drive value was sent           */
 
-unsigned int curEmoteMode = NO_EMOTE;           /* Current Emote mode */
+unsigned long lastEmoteSent = 0;                /* Last time an emote was sent to head        */
+
+unsigned int curEmoteMode = NO_EMOTE;           /* Current Emote mode                         */
 
 unsigned long lastAICamControlPktSent = 0;      /* Last time we sent an AICam Control packet. */
 
 unsigned long lastAICamPacketReceived = 0;      /* Last time we received an AICam Driving packet */
 
-bool projectorBulb = false;                     /* Controls mosfet for projector bulb */
-unsigned long lastProjectorStatus = 0;          /* Last time projector was toggled    */
+bool projectorBulb = false;                     /* Controls mosfet for projector bulb         */
+unsigned long lastProjectorStatus = 0;          /* Last time projector was toggled            */
 
 // Control signals for pamphlet dispenser
 bool pamphletDispenser = false;
 bool turnPDOnFlag = false;
 unsigned long lastPamphletDispenserStatus = 0;
 
-bool AICamMode;                                 /* Whether or not we're in AICamMode */
+bool AICamMode;                                 /* Whether or not we're in AICamMode          */
 
 // ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 struct_message packet;                          /* ESP NOW packet for outbound wireless communications */
 
-struct_message incomingReadings;                /* packet that is received */
+struct_message incomingReadings;                /* packet that is received                    */
 
 esp_now_peer_info_t peerInfo;
 
@@ -156,9 +158,6 @@ esp_now_peer_info_t peerInfo;
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&packet, incomingData, sizeof(packet));
-
-    //This Receiver microcontroller will be receiving data from the computer vision Camera.
-    //Todo: add code to receive input packets from the camera and send commands to the Dome motor. 
 
     if (packet.recipient == BODY_ESP32_RECEIVER) {
       switch(packet.role) {
@@ -615,8 +614,8 @@ void loop() {
     //Channel 2 (Right stick) --> Forwards/Backwards (LMotor + RMotor) 
     //Channel 1 (Right stick) --> Turn Left/Right (Either -LMotor/+RMotor or just +1Motor forward )
     
-    //DOME MOVEMENT
-    if (curTime - lastCh4ValueSent > 10 ) {      // 100Hz update rate for dome movement
+    // DOME MOVEMENT
+    if (curTime - lastCh4ValueSent > 15 ) {      // 67Hz update rate for dome movement
       //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
       if (abs(ch4Value) < 15) { // If left stick not being pressed
         ch4Value = 0;
@@ -628,34 +627,40 @@ void loop() {
     }
 
     // DRIVE MOVEMENT
-    if (ch2Value > -1 && ch2Value < 256) {      /* if ch2 value in reasonable range     */
+    if (curTime - lastDriveValueSent > 10) {      // 100Hz update rate for Drive Movement
 
-      if (abs(ch1Value) > 12) {                 /* if ch1 value is outside of deadzone  */
-        LeftDriveValue = ch2Value + (float(ch1Value) * 0.1);
-        RightDriveValue = ch2Value - (float(ch1Value) * 0.1);
+      if (ch2Value > -1 && ch2Value < 256) {      /* if ch2 value in reasonable range     */
+
+        if (abs(ch1Value) > 12) {                 /* if ch1 value is outside of deadzone  */
+          LeftDriveValue = ch2Value + (float(ch1Value) * 0.1);
+          RightDriveValue = ch2Value - (float(ch1Value) * 0.1);
+        }
+        else if (abs(ch2Value) > 12 ) {           /* if ch2 is outsize of deadzone        */
+          LeftDriveValue = ch2Value;
+          RightDriveValue = ch2Value;
+        }
+        else {                                    /* If both sticks in deadzone           */
+          LeftDriveValue = 127;
+          RightDriveValue = 127;
+        }
+        ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.          */
+        ledcWrite(1, RightDriveValue);
       }
-      else if (abs(ch2Value) > 10 ) {           /* if ch2 is outsize of deadzone        */
-        LeftDriveValue = ch2Value;
-        RightDriveValue = ch2Value;
-      }
-      else {                                    /* If both sticks in deadzone           */
+      else {                                      /* If ch2 value is bad, send no drive   */
         LeftDriveValue = 127;
         RightDriveValue = 127;
+        ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.           */
+        ledcWrite(1, RightDriveValue);
       }
-      ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.          */
-      ledcWrite(1, RightDriveValue);
+
+      lastDriveValueSent = curTime;
     }
-    else {                                      /* If ch2 value is bad, send no drive   */
-      LeftDriveValue = 127;
-      RightDriveValue = 127;
-      ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.           */
-      ledcWrite(1, RightDriveValue);
-    }
+
   }
   else if ((LeftDriveValue != 127 || RightDriveValue != 127)) { /* Enforce no driving when not in drive mode. */
     LeftDriveValue = 127;
     RightDriveValue = 127;
-    ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.             */
+    ledcWrite(0, LeftDriveValue);                 /* Send pulse width to motors.             */
     ledcWrite(1, RightDriveValue);
   }
 
@@ -666,7 +671,7 @@ void loop() {
   if (ch7Value == 1 && ch8Value == 0 && ch9Value == 0 && ch10Value == 0) {
 
     //DOME MOVEMENT
-    if (curTime - lastCh4ValueSent > 10 ) {      // 100Hz update rate for dome movement
+    if (curTime - lastCh4ValueSent > 15 ) {      // 67Hz update rate for dome movement
       //Channel 4 (Left stick)  --> Turn Left/Right (dome motor)
       if (abs(ch4Value) < 13) { // If left stick not being pressed
         ch4Value = 0;
@@ -677,7 +682,7 @@ void loop() {
       lastCh4ValueSent = curTime;
       lastCh1ValueSent = curTime;
     }
-    else if (curTime - lastCh1ValueSent > 10) {     // 100Hz update rate for dome movement
+    else if (curTime - lastCh1ValueSent > 15) {     // 67Hz update rate for dome movement
       //Channel 1 (Right stick)  --> Turn Left/Right (dome motor)
       if (abs(ch1Value) < 13) { // If left stick not being pressed
         ch1Value = 0;
@@ -703,7 +708,7 @@ void loop() {
   //Move joysticks all the way to one direction to trigger an emote.
   //Break emote functions out into functions above the main loop
 
-    if ( curTime - lastEmoteSent > 5000 ) {
+    if ( curTime - lastEmoteSent > 5000 ) {       // 1 emote every 5 seconds
       //Right stick left
       if (ch1Value < -92) {
         curEmoteMode = EMOTE_1;
@@ -778,6 +783,7 @@ void loop() {
 
     AICamMode = true;
 
+    // Timeout if we have not received a control packet from AICam in last 650ms
     if (curTime - lastAICamPacketReceived >= 650) {
       sendSerialPacket((short)0);
     }
@@ -791,7 +797,6 @@ void loop() {
       packet.role = AI_CAM_CONTROL_OFF;
       lastAICamControlPktSent = curTime;
       esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-      sendSerialPacket((short)0);
     }
 
     AICamMode = false;
@@ -801,6 +806,14 @@ void loop() {
   /*--------------------------------------------
   Switch conditions for R2D2 to be in
   EMERGENCY DISCONNECT MODE
+  This mode sends stop movement signals then 
+  disconnects itself from all motors in R2D2. 
+  This code sends a signal to the secondary 
+  motor controller to enter into a similar
+  emergency disconnect mode, and they then
+  stop all microcontroller execution. The only 
+  way to recover from emergency disconnect is
+  to restart R2D2's body.
   --------------------------------------------*/
   if (ch7Value == 1 && ch8Value == 1 && ch9Value == 1 && ch10Value == 1) {
 
@@ -832,6 +845,15 @@ void loop() {
     }
   }
 
+  /*------------------------------------------------------------------------------------
+  Enforce Dome rotation is stopped if timeout has occurred, no matter the active mode.
+  -------------------------------------------------------------------------------------*/
+  if ((curTime - lastCh1ValueSent > 200) && (curTime - lastCh4ValueSent > 200)) {
+    sendSerialPacket((short)0);
+    lastCh1ValueSent = curTime;
+    lastCh4ValueSent = curTime;
+  }
+
   /*--------------------------------------------
   If volume knob has changed >5 since last 
   volume was sent, send a new packet instructing
@@ -846,15 +868,20 @@ void loop() {
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
   }
 
-  //If projectorBulb == true, close MOSFET switch to turn on bulb.
+  /*---------------------------------------------------------------
+  If projectorBulb == true, close MOSFET switch to turn on bulb.
+  ---------------------------------------------------------------*/
   if (projectorBulb) {
     digitalWrite(PIN_32, HIGH);
   }
   else {
     digitalWrite(PIN_32, LOW);
   }
-  // Send projector status to soundboard every 5 seconds
-  // Controls LED status indicator on controller soundboard
+
+  /*---------------------------------------------------------------
+   Send projector status to soundboard every 5 seconds
+   Controls LED status indicator on controller soundboard
+  ---------------------------------------------------------------*/
   if (curTime - lastProjectorStatus > 5000) {
     if (projectorBulb) {
       packet.role = SET_SOUNDBOARD_LED_HIGH;
@@ -872,7 +899,6 @@ void loop() {
   Sends signal to secondary motor controller,
   which handles driving PD motor
   --------------------------------------------*/
-
   if (pamphletDispenser && turnPDOnFlag && (curTime - lastPamphletDispenserStatus > 1000)) {
     digitalWrite(PIN_33, HIGH);
     lastPamphletDispenserStatus = curTime;
