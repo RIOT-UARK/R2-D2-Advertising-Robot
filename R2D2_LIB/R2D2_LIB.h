@@ -144,3 +144,7 @@ enum PAMPHLET_DISP_STAGES {
     CLOSE_DOOR_END_CYCLE
 
 };
+
+enum DEBUG_DO_NOT_UPLOAD {
+    PIN_XX = 1
+};

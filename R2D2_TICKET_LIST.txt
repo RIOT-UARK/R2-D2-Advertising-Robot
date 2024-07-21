@@ -3,35 +3,30 @@ R2D2 SOFTWARE TICKET LIST:
 [ALL] BETTER DOCUMENT PINOUTS 
 [ALL] Remove unused variables
 [All] Perhaps make configurable gain values in R2D2_LIB. E.g: stick dead zone, motor drive speed, etc.
-[All] ENSURE there is both a received ESP NOW packet struct and an outgoing packet struct
 
 [AUDIOBOARD] Receive TRIGGER_EMOTE packets
-[HeadAudioBoard] Make Audio play packets timing based, rather than delay based.
-[HeadAudioBoard/HeadAICam] Find and add pins for communicating between HeadAudioBoard and HeadAICam. If not enough pins, investigate I2C or maybe a 2 pin soln.
+[HeadAudioBoard/HeadFacialDetection] Find and add pins for communicating between HeadAudioBoard and HeadAICam. If not enough pins, investigate I2C or maybe a 2 pin soln.
+[HeadFacialDetection] Cut out all of the OSD drawing fat.
 
 [BodyESP32_Receiver] HIGH PRIORITY: ESP32 spews garbage over serial on startup. You can connect Pin 15 to ground to prevent this, or we can investigate a better/safer way to communicate with secondary motor driver
-[BodyESP32_Receiver] HIGH PRIORITY: Enforce timing on sending motor signals (100Hz)
-[BodyESP32_Receiver] Add interrupt function deregistration to emergency disconnect.
 [3-Byte Serial Transmission]: Arduino Uno can handle ~500Hz update rate while unburdened. Targeting 100Hz.
 [BodyESP32_Receiver] Better document  pinout
 [BodyESP32_Receiver] Ensure that channel2 value of ~255 is achievable
-[BodyESP32_Receiver] implement dome rotation control.
 [BodyESP32_Receiver] Implement Emote Modes
-[BodyESP32_Receiver] Investigate the initial conditions of the volume and lastVolumeSent variables
 [BodyESP32_Receiver] TODO:  Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
+[BodyESP32_Receiver/HeadAudioBoard] Perhaps Mode packet to inform AudioBoard of Emote Mode status and ignore soundboard while in emote mode.
 
-[ControllerSoundboard/BodyESP32_Receiver]: investigate why 'incomingReadings' espnow packet variable isnt being used for OnDataRecv callback functions. [Seems to be Corrupting packets to be sent out]
+[ControllerSoundboard] Get correct pin order for buttons from left to right
 
 [HeadLEDController ]LOW PRIORITY: Reimplement  back psi fading w/ improvements
 [HeadLEDController] TEST ADDED CODE: Replaced many calls to millis() with a time variable.
 [HeadLEDController]: TEST ADDED CODE: for fading, now updating brightess every 15ms
 
 [Secondary_Motor_Driver] Tune PD Servo values.
-[Secondary_Motor_Driver] Enumerate PD stages
-[Secondary_Motor_Driver/BodyESP32_Receiver] Emergency Disconnect, enumerated number over serial connection
 [Secondary_Motor_Driver] Emergency Disconnect if receiving a lot of garbage.
 
 [TEST] Test Emergency Disconnect
 [TEST] Test New Serial Connection Protocol
 
 [Code Review] AI CAM Mode interaction
+

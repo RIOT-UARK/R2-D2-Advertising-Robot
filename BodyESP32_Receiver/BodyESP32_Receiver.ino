@@ -144,7 +144,7 @@ uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 struct_message packet;                          /* ESP NOW packet for outbound wireless communications */
 
-struct_message incomingReadings;                /* packet that is received                    */
+struct_message incomingPacket;                  /* packet that is received                    */
 
 esp_now_peer_info_t peerInfo;
 
@@ -157,10 +157,10 @@ esp_now_peer_info_t peerInfo;
 ----------------------------------------------------------------------*/
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-  memcpy(&packet, incomingData, sizeof(packet));
+  memcpy(&incomingPacket, incomingData, sizeof(incomingPacket));
 
-    if (packet.recipient == BODY_ESP32_RECEIVER) {
-      switch(packet.role) {
+    if (incomingPacket.recipient == BODY_ESP32_RECEIVER) {
+      switch(incomingPacket.role) {
         case TOGGLE_PROJECTOR_BULB:
           projectorBulb = !projectorBulb;
           break;
@@ -326,7 +326,7 @@ void CH10Interrupt() {
 ----------------------------------------------------------------------*/
 
 void executeEmote1() {
-  long timeSinceEmoteStart = curTime - timeSinceEmoteStart;
+  long timeSinceEmoteStart = curTime - lastEmoteSent;
 
   if (timeSinceEmoteStart <= 1000) {
     //Set servos, send commands, etc
@@ -347,24 +347,42 @@ void executeEmote1() {
 
     executeEmote2
 
-      Triggers Emote 2
+      Triggers Emote 2: Untested prototype. Rotate head and go weeee
 
 ----------------------------------------------------------------------*/
 
 void executeEmote2() {
-  long timeSinceEmoteStart = curTime - timeSinceEmoteStart;
+  long timeSinceEmoteStart = curTime - lastEmoteSent;
 
-  if (timeSinceEmoteStart <= 1000) {
-    //Set servos, send commands, etc
-  }
-  else if (timeSinceEmoteStart <= 2500) {
-    
-  }
-  else if (timeSinceEmoteStart <= 4500) {
-    
-  }
-  else {
-    curEmoteMode = NO_EMOTE;
+  // Enforce 67Hz Dome motor rotation update rate
+  if ( curTime - lastCh4ValueSent > 15 ) {
+
+    if (timeSinceEmoteStart <= 75) {
+      sendSerialPacket((short)10);
+      lastCh4ValueSent = curTime;
+    }
+    else if (timeSinceEmoteStart <= 250) {
+      sendSerialPacket((short)20);
+      lastCh4ValueSent = curTime;
+    }
+    else if (timeSinceEmoteStart <= 3000) {
+      sendSerialPacket((short)35);
+      lastCh4ValueSent = curTime;
+    }
+    else if (timeSinceEmoteStart <= 3250) {
+      sendSerialPacket((short)20);
+      lastCh4ValueSent = curTime;
+    }
+    else if (timeSinceEmoteStart <= 3400) {
+      sendSerialPacket((short)10);
+      lastCh4ValueSent = curTime;
+    }
+    else {
+      sendSerialPacket((short)0);
+      lastCh4ValueSent = curTime;
+      curEmoteMode = NO_EMOTE;
+    }
+
   }
 }
 
@@ -378,7 +396,7 @@ void executeEmote2() {
 ----------------------------------------------------------------------*/
 
 void executeEmote3() {
-  long timeSinceEmoteStart = curTime - timeSinceEmoteStart;
+  long timeSinceEmoteStart = curTime - lastEmoteSent;
 
   if (timeSinceEmoteStart <= 1000) {
     //Set servos, send commands, etc
@@ -404,7 +422,7 @@ void executeEmote3() {
 ----------------------------------------------------------------------*/
 
 void executeEmote4() {
-  long timeSinceEmoteStart = curTime - timeSinceEmoteStart;
+  long timeSinceEmoteStart = curTime - lastEmoteSent;
 
   if (timeSinceEmoteStart <= 1000) {
     //Set servos, send commands, etc
@@ -825,6 +843,18 @@ void loop() {
     // Detach DriveValue pins
     ledcDetachPin(PIN_26);
     ledcDetachPin(PIN_27);
+
+    detachInterrupt(CH1);
+    detachInterrupt(CH2);
+    detachInterrupt(CH3);
+    detachInterrupt(CH4);
+    detachInterrupt(CH5);
+    detachInterrupt(CH6);
+    detachInterrupt(CH7);
+    detachInterrupt(CH8);
+    detachInterrupt(CH9);
+    detachInterrupt(CH10);
+
 
     sendSerialPacket((short)SERIAL_PKT_EMERGENCY_DISCONNECT);
 

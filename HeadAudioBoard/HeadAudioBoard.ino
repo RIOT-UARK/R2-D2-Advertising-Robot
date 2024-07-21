@@ -77,6 +77,12 @@ unsigned long lastAICamControlPkt = 0;
 // last sent AI Came directed dome movement
 int lastSentAICamTurn;
 
+// Time when the LED 'talk' signal will be turned off
+unsigned long LEDTalkTimeout = 0;
+
+// Whether or not we are sending LED Talk signal
+bool LEDTalkSignal = false;
+
 // Create AudioKit objects
 AudioSourceSD source(startFilePath, ext, PIN_AUDIO_KIT_SD_CARD_CS);
 AudioKitStream kit;
@@ -113,15 +119,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           player.setPath("/exci0.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(1250);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 1250;
+          LEDTalkSignal = true;
         }
         else {
           player.setPath("/exci1.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(1940);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 1940;
+          LEDTalkSignal = true;
           }
           excite++;
         break;
@@ -131,15 +137,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           player.setPath("/worr0.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(1420);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 1420;
+          LEDTalkSignal = true;
         }
         else {
           player.setPath("/worr1.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(1380);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 1380;
+          LEDTalkSignal = true;
         }
           worr++;
         break;
@@ -149,15 +155,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           player.setPath("/scre0.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(1050);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 1050;
+          LEDTalkSignal = true;
         }
         else {
           player.setPath("/scre1.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(1290);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 1290;
+          LEDTalkSignal = true;
         }
           scre++;
         break;
@@ -167,15 +173,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           player.setPath("/ackn0.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(4400);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 4400;
+          LEDTalkSignal = true;
         }
         else {
           player.setPath("/ackn1.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(2120);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 2120;
+          LEDTalkSignal = true;
         }
           ackn++;
         break;
@@ -185,15 +191,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
           player.setPath("/chat0.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(1000);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 1000;
+          LEDTalkSignal = true;
         }
         else {
           player.setPath("/chat1.mp3");
           //Signal R2D2 psi light to 'talk'
           digitalWrite(PIN_23, HIGH);
-          delay(1200);
-          digitalWrite(PIN_23, LOW);
+          LEDTalkTimeout = curTime + 1200;
+          LEDTalkSignal = true;
         }
           chat++;
         break;
@@ -212,8 +218,11 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         // Light up LEDs for a given time
         break;
       case TRIGGER_EMOTE_XXXXX2:
-        // Play an audio
-        // Light up LEDs for a given time
+        player.setPath("/scre1.mp3");
+          //Signal R2D2 psi light to 'talk'
+          digitalWrite(PIN_23, HIGH);
+          LEDTalkTimeout = curTime + 1290;
+          LEDTalkSignal = true;
         break;
       case TRIGGER_EMOTE_XXXXX3:
         // Play an audio
@@ -345,7 +354,7 @@ void loop() {
   if (AICamControl) {
 
     // If receiving command to turn left from AICam
-    if ((digitalRead(PIN_XX) == HIGH) && (digitalRead(PIN_XX) == LOW)) {
+    if ((digitalRead(PIN_XX) == HIGH) && (digitalRead(PIN_XX) == LOW)) {    //****TODO***** ASSIGN THESE PIN_XX's
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_LEFT;
     }
@@ -371,8 +380,14 @@ void loop() {
     // If we have not received an AICamControlPkt from BodyESP32Receiver in the last 1.75 seconds
     if (curTime - lastAICamControlPkt >= 1750) {
       AICamControl = false;
-      //digitalWrite(PIN_XX, LOW); TODO: NEED TO ASSIGN THIS PIN
+      digitalWrite(PIN_XX, LOW); //TODO: NEED TO ASSIGN THIS PIN
     }
 
+  }
+
+  // If it is time to turn the 'talk' signal off
+  if ( LEDTalkSignal && ( curTime - LEDTalkTimeout > 0 ) ) {
+    digitalWrite(PIN_23, LOW);
+    LEDTalkSignal = false;
   }
 }

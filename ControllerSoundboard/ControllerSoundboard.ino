@@ -30,6 +30,7 @@ uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 //ESP NOW wireless communication packet
 struct_message packet;
+struct_message incomingPacket;
 
 esp_now_peer_info_t peerInfo;
 
@@ -54,13 +55,13 @@ void wakeModemSleep();
 ----------------------------------------------------------------------*/
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-  memcpy(&packet, incomingData, sizeof(packet));
+  memcpy(&incomingPacket, incomingData, sizeof(incomingPacket));
 
-    if (packet.recipient == CONTROLLER_SOUNDBOARD) {
-      if (packet.role == SET_SOUNDBOARD_LED_LOW) {
+    if (incomingPacket.recipient == CONTROLLER_SOUNDBOARD) {
+      if (incomingPacket.role == SET_SOUNDBOARD_LED_LOW) {
         //Set LED low
       }
-      else if (packet.role == SET_SOUNDBOARD_LED_HIGH) {
+      else if (incomingPacket.role == SET_SOUNDBOARD_LED_HIGH) {
         //Set LED High
       }
     }
@@ -93,7 +94,7 @@ void setup() {
   WiFi.mode(WIFI_STA);
 
   if (esp_now_init() != ESP_OK) {                 /* Initialize ESP-NOW connection      */
-    Serial.println("Error initializing ESP-NOW");
+    // Serial.println("Error initializing ESP-NOW");
     return;
   }
 
