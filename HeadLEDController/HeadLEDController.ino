@@ -210,7 +210,6 @@ void frontTalk(int min, int max, Adafruit_NeoPixel &strip, long &delayTime, int 
   }
   else {  
     //If the same color is selected twice in a row, selection is updated and talk() is recursively called until a new color is selected.
-    frontColorSelection = random(10);
     frontTalk(min, max, strip, delayTime, lastColor);
   }
 }

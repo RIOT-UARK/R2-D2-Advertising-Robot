@@ -115,93 +115,103 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         break;
       // Soundboard packet
       case PLAY_EXCITE_AUDIO:
-        if (excite % 2 == 1) {
-          player.setPath("/exci0.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 1250;
-          LEDTalkSignal = true;
-        }
-        else {
-          player.setPath("/exci1.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 1940;
-          LEDTalkSignal = true;
+        if (!LEDTalkSignal) {                   /* Enforces non-overlapping audios             */
+          if (excite % 2 == 1) {
+            player.setPath("/exci0.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 1250;
+            LEDTalkSignal = true;
           }
-          excite++;
+          else {
+            player.setPath("/exci1.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 1940;
+            LEDTalkSignal = true;
+            }
+            excite++;
+        }
         break;
       // Soundboard packet
       case PLAY_WORRIED_AUDIO:
-        if (worr % 2 == 1) {
-          player.setPath("/worr0.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 1420;
-          LEDTalkSignal = true;
+        if (!LEDTalkSignal) {                   /* Enforces non-overlapping audios             */
+          if (worr % 2 == 1) {
+            player.setPath("/worr0.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 1420;
+            LEDTalkSignal = true;
+          }
+          else {
+            player.setPath("/worr1.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 1380;
+            LEDTalkSignal = true;
+          }
+            worr++;
         }
-        else {
-          player.setPath("/worr1.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 1380;
-          LEDTalkSignal = true;
-        }
-          worr++;
         break;
       // Soundboard packet
       case PLAY_SCREAM_AUDIO:
-        if (scre % 2 == 1) {
-          player.setPath("/scre0.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 1050;
-          LEDTalkSignal = true;
+        if (!LEDTalkSignal) {                   /* Enforces non-overlapping audios             */
+          if (scre % 2 == 1) {
+            player.setPath("/scre0.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 1050;
+            LEDTalkSignal = true;
+          }
+          else {
+            player.setPath("/scre1.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 1290;
+            LEDTalkSignal = true;
+          }
+            scre++;
         }
-        else {
-          player.setPath("/scre1.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 1290;
-          LEDTalkSignal = true;
-        }
-          scre++;
         break;
       // Soundboard packet
       case PLAY_ACKNOWLEDGE_AUDIO:
-        if (ackn % 2 == 1) {
-          player.setPath("/ackn0.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 4400;
-          LEDTalkSignal = true;
+        if (!LEDTalkSignal) {                   /* Enforces non-overlapping audios             */
+          if (ackn % 2 == 1) {
+            player.setPath("/ackn0.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 4400;
+            LEDTalkSignal = true;
+          }
+          else {
+            player.setPath("/ackn1.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 2120;
+            LEDTalkSignal = true;
+          }
+            ackn++;
         }
-        else {
-          player.setPath("/ackn1.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 2120;
-          LEDTalkSignal = true;
-        }
-          ackn++;
         break;
       // Soundboard packet
       case PLAY_CHAT_AUDIO:
-        if (chat % 2 == 1) {
-          player.setPath("/chat0.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 1000;
-          LEDTalkSignal = true;
+        if (!LEDTalkSignal) {                   /* Enforces non-overlapping audios             */
+          if (chat % 2 == 1) {
+            player.setPath("/chat0.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 1000;
+            LEDTalkSignal = true;
+          }
+          else {
+            player.setPath("/chat1.mp3");
+            //Signal R2D2 psi light to 'talk'
+            digitalWrite(PIN_23, HIGH);
+            LEDTalkTimeout = curTime + 1200;
+            LEDTalkSignal = true;
+          }
+            chat++;
         }
-        else {
-          player.setPath("/chat1.mp3");
-          //Signal R2D2 psi light to 'talk'
-          digitalWrite(PIN_23, HIGH);
-          LEDTalkTimeout = curTime + 1200;
-          LEDTalkSignal = true;
-        }
-          chat++;
         break;
       case AI_CAM_CONTROL_ON:
         AICamControl = true;

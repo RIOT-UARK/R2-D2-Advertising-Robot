@@ -3,8 +3,9 @@ R2D2 SOFTWARE TICKET LIST:
 [ALL] BETTER DOCUMENT PINOUTS 
 [ALL] Remove unused variables
 [All] Perhaps make configurable gain values in R2D2_LIB. E.g: stick dead zone, motor drive speed, etc.
+[All] Investigate and confirm behavior if Controller dies.
 
-[AUDIOBOARD] Receive TRIGGER_EMOTE packets
+[AUDIOBOARD] Play audio when receiving EMOTE packets
 [HeadAudioBoard/HeadFacialDetection] Find and add pins for communicating between HeadAudioBoard and HeadAICam. If not enough pins, investigate I2C or maybe a 2 pin soln.
 [HeadFacialDetection] Cut out all of the OSD drawing fat.
 
@@ -13,14 +14,13 @@ R2D2 SOFTWARE TICKET LIST:
 [BodyESP32_Receiver] Better document  pinout
 [BodyESP32_Receiver] Ensure that channel2 value of ~255 is achievable
 [BodyESP32_Receiver] Implement Emote Modes
-[BodyESP32_Receiver] TODO:  Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc.
-[BodyESP32_Receiver/HeadAudioBoard] Perhaps Mode packet to inform AudioBoard of Emote Mode status and ignore soundboard while in emote mode.
 
 [ControllerSoundboard] Get correct pin order for buttons from left to right
 
 [HeadLEDController ]LOW PRIORITY: Reimplement  back psi fading w/ improvements
 [HeadLEDController] TEST ADDED CODE: Replaced many calls to millis() with a time variable.
 [HeadLEDController]: TEST ADDED CODE: for fading, now updating brightess every 15ms
+[HeadLEDController] Enumerate Color selections6
 
 [Secondary_Motor_Driver] Tune PD Servo values.
 [Secondary_Motor_Driver] Emergency Disconnect if receiving a lot of garbage.
@@ -30,3 +30,4 @@ R2D2 SOFTWARE TICKET LIST:
 
 [Code Review] AI CAM Mode interaction
 
+[Code Review] HeadLEDController. Was previously having issues where front Psi light would flash incredibly quickly.
