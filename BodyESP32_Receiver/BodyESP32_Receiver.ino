@@ -546,7 +546,7 @@ void loop() {
   If there has been a high-to-low transition
   on a PWM channel, then we have a new pulse
   width available and can map that width to an
-  int value
+  int representing the value of each channel
   --------------------------------------------*/
   if (CH1NewPulseDurAvailable) {
     CH1NewPulseDurAvailable = false;
@@ -943,11 +943,11 @@ void loop() {
   DEBUG SERIAL PRINTS
   --------------------------------------------*/
 
-//Serial.println(projectorBulb);
+ //Serial.println(projectorBulb);
   //Serial.println(millis() - time);
   //Room for 2 more 'modes' 
   // Print to Serial Monitor
-/*  Serial.print("Ch1: ");
+ /*  Serial.print("Ch1: ");
   Serial.print(ch1Value);
   Serial.print(" | Ch2: ");
   Serial.print(ch2Value);
