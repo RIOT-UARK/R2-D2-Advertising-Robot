@@ -666,7 +666,7 @@ void loop() {
     // DRIVE MOVEMENT
     if (curTime - lastDriveValueSent > 10) {      // 100Hz update rate for Drive Movement
 
-      if (ch2Value > -1 && ch2Value < 256) {      /* if ch2 value in reasonable range     */
+      if (ch2Value > -2 && ch2Value < 256) {      /* if ch2 value in reasonable range     */
 
         if (abs(ch1Value) > 12) {                 /* if ch1 value is outside of deadzone  */
           LeftDriveValue = ch2Value + (float(ch1Value) * 0.1);
@@ -677,15 +677,15 @@ void loop() {
           RightDriveValue = ch2Value;
         }
         else {                                    /* If both sticks in deadzone           */
-          LeftDriveValue = 127;
-          RightDriveValue = 127;
+          LeftDriveValue = 117;
+          RightDriveValue = 117;
         }
         ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.          */
         ledcWrite(1, RightDriveValue);
       }
       else {                                      /* If ch2 value is bad, send no drive   */
-        LeftDriveValue = 127;
-        RightDriveValue = 127;
+        LeftDriveValue = 117;
+        RightDriveValue = 117;
         ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.           */
         ledcWrite(1, RightDriveValue);
       }
@@ -694,13 +694,13 @@ void loop() {
     }
 
   }
-  else if ((LeftDriveValue != 127 || RightDriveValue != 127)) { /* Enforce no driving when not in drive mode. */
-    LeftDriveValue = 127;
-    RightDriveValue = 127;
+  else if ((LeftDriveValue != 117 || RightDriveValue != 117)) { /* Enforce no driving when not in drive mode. */
+    LeftDriveValue = 117;
+    RightDriveValue = 117;
     ledcWrite(0, LeftDriveValue);                 /* Send pulse width to motors.             */
     ledcWrite(1, RightDriveValue);
   }
-
+  
   /*--------------------------------------------
   Switch conditions for R2D2 to be in
   DOME ROTATION ONLY MODE
@@ -852,11 +852,11 @@ void loop() {
   way to recover from emergency disconnect is
   to restart R2D2's body.
   --------------------------------------------*/
-  if (ch7Value == 1 && ch8Value == 1 && ch9Value == 1 && ch10Value == 1) {
+  if (ch7Value == 1 && ch8Value == 1 && ch9Value >= 1 && ch10Value == 1) {
 
     // Stop Drive Motors
-    LeftDriveValue = 127;
-    RightDriveValue = 127;
+    LeftDriveValue = 117;
+    RightDriveValue = 117;
     ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.             */
     ledcWrite(1, RightDriveValue);
     // Detach DriveValue pins

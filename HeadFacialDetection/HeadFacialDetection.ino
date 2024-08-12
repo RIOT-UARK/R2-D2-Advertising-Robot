@@ -19,7 +19,7 @@
 HeadFacialDetection Pinout
 
   PIN 1  --> SIGNAL OUTPUT TO HeadAudioBoard to turn dome left
-  PIN XX --> SIGNAL OUTPUT TO HeadAudioBoard to turn dome right
+  PIN 2 --> SIGNAL OUTPUT TO HeadAudioBoard to turn dome right
 
 -----------------------------------------------------------------------------*/
 
@@ -137,7 +137,7 @@ void setup() {
     // Signal to turn R2D2 Dome Left
     pinMode(PIN_1, OUTPUT);
     // Signal to turn R2D2 Dome Right TODO: FIND PIN FOR THIS
-    //pinMode(XXXXX, OUTPUT);
+    pinMode(PIN_2, OUTPUT);
     // Signal to indicate that AICam has control
     //pinMode(XXXXX, INPUT);
 
@@ -238,22 +238,22 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
          //if (digitalRead(XXXXXX) == HIGH) {
             // If closest face is to the right -> turn right
             if (faceMiddle > 0.63) {
-              //digitalWrite(XXXXXX, HIGH);
+              digitalWrite(PIN_2, HIGH);
               digitalWrite(PIN_1, LOW);
             }
             // If closest face is to the left -> turn left
             else if (faceMiddle < 0.37) {
-              //digitalWrite(XXXXX, LOW);
+              digitalWrite(PIN_2, LOW);
               digitalWrite(PIN_1, HIGH);
             }
             // If face is centered on the camera -> don't turn
             else {
-            //digitalWrite(XXXXX, LOW);
+              digitalWrite(PIN_2, LOW);
               digitalWrite(PIN_1, LOW);
             } 
          //}
          else {
-            //digitalWrite(XXXXX, LOW);
+            digitalWrite(PIN_2, LOW);
             digitalWrite(PIN_1, LOW);
          }
 
@@ -261,7 +261,7 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
         
     }
     else {
-      //digitalWrite(XXXXX, LOW);
+      digitalWrite(PIN_2, LOW);
       digitalWrite(PIN_1, LOW);
     } 
     OSD.update(CHANNEL);

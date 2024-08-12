@@ -127,26 +127,26 @@ void loop() {
       //Receive 3 byte serial packet containing driveValue
       Serial.readBytesUntil(SERIAL_PKT_TERMINATOR, incomingSerial, SERIAL_PKT_SIZE);
       driveValue = word( incomingSerial[0], incomingSerial[1] );
-
+      Serial.println(driveValue);
       timeOfLastRec = curTime;
     //TODO: Provide a good explanation of how the signals to the DROK motor controller works
     // and setting pins 2 and 4 control direction/braking
 
-    if (driveValue > 14 && driveValue < 100) {
+    if (driveValue > 12 && driveValue < 103) {
       digitalWrite(PIN_2, LOW);
       digitalWrite(PIN_4, HIGH);
-      driveValue = int(((float(driveValue) - 14) * 255.0) / 85.0);
+      driveValue = int(((float(driveValue) - 12) * 255.0) / 88.0);
       }
-    else if (driveValue < 241 && driveValue > 155) {
+    else if (driveValue < -12 && driveValue > -103) {
       digitalWrite(PIN_2, HIGH);
       digitalWrite(PIN_4, LOW);
-      driveValue = int(((240 - float(driveValue)) * 255.0) / 85.0);   
+      driveValue = int(((float(abs(driveValue)) - 12) * 255.0) / 88.0);   
       }
     // If we receive emergency disconnect signal
     else if (driveValue == SERIAL_PKT_EMERGENCY_DISCONNECT) {
       emergencyDisconnect();
     }
-    else {
+    else if (driveValue < -103 && driveValue > 103) {
       badPktCounter++;
       driveValue = 0;
 

@@ -10,7 +10,7 @@
       mirroring how it works in the movies.
 
     MICROCONTROLLER:
-      //!TODO: PUT STUFF HERE
+      Arduino Nano
 
 -----------------------------------------------------------------------------*/
 

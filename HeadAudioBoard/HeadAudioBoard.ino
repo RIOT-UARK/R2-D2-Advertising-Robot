@@ -22,8 +22,8 @@
 HeadAudioBoard Pinout
 
   PIN 23 --> SIGNAL OUTPUT FOR 'TALK FAST' flag to HeadLEDController Pin 7 
-  PIN XX --> SIGNAL INPUT FROM HeadFacialDetection Pin 1(?) to turn dome left
-  PIN XX --> SIGNAL INPUT FROM HeadFacialDetection to turn dome right
+  PIN 18 --> SIGNAL INPUT FROM HeadFacialDetection Pin 1 to turn dome left
+  PIN 22 --> SIGNAL INPUT FROM HeadFacialDetection Pin 2 to turn dome right
   PIN XX --> SIGNAL OUTPUT FOR PERISCOPE COMMAND flag to HeadLEDController Pin XX
 
 -----------------------------------------------------------------------------*/
@@ -311,9 +311,9 @@ void setup() {
   // Signal to HeadLEDController for R2D2 to 'talk'.
   pinMode(PIN_23, OUTPUT);
   // Signal from HeadFacialDetection for left Dome movement
-/*  pinMode(XXXXXX, INPUT);                   */
+  pinMode(PIN_18, INPUT);
   // Signal from HeadFacialDetection for right Dome movement
-/*  pinMode(XXXXXX, INPUT);                   */
+  pinMode(PIN_22, INPUT);
 
   WiFi.mode(WIFI_STA);
 
@@ -375,12 +375,12 @@ void loop() {
   if (AICamControl) {
 
     // If receiving command to turn left from AICam
-    if ((digitalRead(PIN_XX) == HIGH) && (digitalRead(PIN_XX) == LOW)) {    //****TODO***** ASSIGN THESE PIN_XX's
+    if ((digitalRead(PIN_18) == HIGH) && (digitalRead(PIN_XX) == LOW)) {    //****TODO***** ASSIGN THESE PIN_XX's
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_LEFT;
     }
     // If receiving command to turn right from AICam
-    else if ((digitalRead(PIN_XX) == LOW) && (digitalRead(PIN_XX) == HIGH)) {
+    else if ((digitalRead(PIN_22) == LOW) && (digitalRead(PIN_XX) == HIGH)) {
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_RIGHT;
     }
@@ -401,7 +401,7 @@ void loop() {
     // If we have not received an AICamControlPkt from BodyESP32Receiver in the last 1.75 seconds
     if (curTime - lastAICamControlPkt >= 1750) {
       AICamControl = false;
-      digitalWrite(PIN_XX, LOW); //TODO: NEED TO ASSIGN THIS PIN
+      //digitalWrite(PIN_XX, LOW); //TODO: NEED TO ASSIGN THIS PIN
     }
 
   }

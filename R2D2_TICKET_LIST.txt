@@ -1,5 +1,8 @@
 R2D2 SOFTWARE TICKET LIST:
 
+[HIGH PRIORITY BUG]: When not in normal drive mode, drive motors drive forwards
+[HIGH PRIORITY BUG]: Dome motor not working. Only sometimes will spin to the right when commanded
+
 [ALL] BETTER DOCUMENT PINOUTS 
 [ALL] Remove unused variables
 [All] Perhaps make configurable gain values in R2D2_LIB. E.g: stick dead zone, motor drive speed, etc.
