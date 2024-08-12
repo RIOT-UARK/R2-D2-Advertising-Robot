@@ -9,6 +9,9 @@
       forward requires sending a positive value to both the left and right
       drive motors. Turning the bot would then require 'skid steering':
       sending a positive value to one motor, and a negative one to another.
+      This microcontroller also acts as the 'main brains' of the body 
+      electronics of R2D2, sending and receiving signals wirelessly from
+      the head via ESPNOW. 
 
     MICROCONTROLLER:
       ESP-32
@@ -18,12 +21,28 @@
 /*
 TODO: Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc. 
 
-ESP32 to Motor Controllers pinout
+BodyESP32Receiver to Secondary Motor Controller pinout
+  PIN 33 --> PIN 5, Dispense Pamphlet signal
+  RX     --> TX ON ARDUINO NANO (HOPEFULLY I WILL CHANGE THIS FROM SERIAL COMM TO smthing else)
+
+BodyESP32Receiver to Drive Motor Controller pinout
   PIN 26 --> SIGNAL INPUT FOR L Side of Drive Motor Controller (White Wire)
   PIN 27 --> SIGNAL INPUT FOR R Side of Drive Motor Controller (2.54 dupont labelled 'S')
-      RX --> TX ON ARDUINO NANO (HOPEFULLY I WILL CHANGE THIS FROM SERIAL COMM TO smthing else)
-  TODO: Better document pinout
 
+BodyESP32Receiver to RC Receiver pinout
+  PIN 13 --> Channel 1
+  PIN 4  --> Channel 2
+  PIN 16 --> Channel 3
+  PIN 17 --> Channel 4
+  PIN 5  --> Channel 5
+  PIN 18 --> Channel 6
+  PIN 19 --> Channel 7
+  PIN 21 --> Channel 8
+  PIN 22 --> Channel 9
+  PIN 23 --> Channel 10
+
+BodyESP32Receiver to Projector Pinout
+  PIN 32 --> Projector Bulb MOSTFET
 */
 
 /*-------------------------------------------------------------------

@@ -149,7 +149,8 @@ void loop() {
   -----------------------------------------*/
 
   if ((digitalRead(PIN_21) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = 5;
+    packet.role = PERISCOPE_ACTION;
+    packet.recipient = AUDIOBOARD;
     debounceTime = curTime;
     lastSend = curTime;
     wakeModemSleep();

@@ -10,9 +10,23 @@
       mirroring how it works in the movies.
 
     MICROCONTROLLER:
-      
+      //!TODO: PUT STUFF HERE
 
 -----------------------------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------------
+HeadLEDController Pinout
+
+  PIN 2  --> SIGNAL INPUT FOR PERISCOPE ACTION SIGNAL FROM HeadAudioBoard Pin XXXXXX
+  PIN 3  --> PWM SIGNAL OUTPUT FOR PERISCOPE SERVO 1
+  PIN 5  --> PWM SIGNAL OUTPUT FOR PERISCOPE SERVO 2
+  PIN 6  --> SIGNAL OUTPUT FOR FRONT PSI LIGHT NEOPIXEL
+  PIN 7  --> SIGNAL INPUT FOR 'TALK FAST' flag from HeadAudioBoard Pin 23 
+  PIN 8  --> SIGNAL OUTPUT FOR BACK PSI LIGHT NEOPIXEL
+
+-----------------------------------------------------------------------------*/
+
+
 
 /*-------------------------------------------------------------------
         INCLUDES
@@ -72,19 +86,19 @@ void setup() {
   front.show();   // Turn OFF all for boot
   back.show();
 
-  front.setBrightness(50);  /* uint8 brightness value (0-255) */
+  front.setBrightness(50);  /* uint8 brightness value (0-255)       */
   back.setBrightness(50);
 
   pinMode(PIN_7, INPUT);  /* Receive talkFast flag from audioBoard  */
   pinMode(PIN_2, INPUT);  /* Recieve Periscope flag from audioBoard */
-  servo1.attach(PIN_3);
-  servo2.attach(PIN_5);
+  servo1.attach(PIN_3);   /* Periscope Servo 1                      */
+  servo2.attach(PIN_5);   /* Periscope Servo 2                      */
 
 
   servo1.write(90);
   servo2.write(0);
 
-  delay(2500);      /* wait 2.5 sec */
+  delay(2500);            /* wait 2.5 sec                           */
 
 }
 
@@ -112,7 +126,6 @@ void loop() {
     talkFastFlag = true;
     frontDelayTime = time - 10;
     frontTalk(200, 450, front, frontDelayTime, frontLastColor);
-  // Keep talking fast if PIN_7 is still HIGH.
   }
   // Keep talking fast if PIN_7 is still HIGH.
   else if ((time - frontDelayTime > 0) && digitalRead(PIN_7) == HIGH) { //TODO: Still switching very quickly *sometimes* when in fast talk mode

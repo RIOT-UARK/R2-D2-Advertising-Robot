@@ -18,6 +18,16 @@
 // TODO: implement an interrupt / break sequence to parse 'emote' commands from the reciever microcontroller, to give priority to its
 // commands, rather than a sounboard input when in emote mode.
 
+/*-----------------------------------------------------------------------------
+HeadAudioBoard Pinout
+
+  PIN 23 --> SIGNAL OUTPUT FOR 'TALK FAST' flag to HeadLEDController Pin 7 
+  PIN XX --> SIGNAL INPUT FROM HeadFacialDetection Pin 1(?) to turn dome left
+  PIN XX --> SIGNAL INPUT FROM HeadFacialDetection to turn dome right
+  PIN XX --> SIGNAL OUTPUT FOR PERISCOPE COMMAND flag to HeadLEDController Pin XX
+
+-----------------------------------------------------------------------------*/
+
 /*-------------------------------------------------------------------
         INCLUDES
 --------------------------------------------------------------------*/
@@ -242,6 +252,9 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         // Play an audio
         // Light up LEDs for a given time
         break;
+      case PERISCOPE_ACTION:
+        // Set a pin HIGH for a given time.
+        break;
       default:
         break;
     }
@@ -297,8 +310,6 @@ void setup() {
 
   // Signal to HeadLEDController for R2D2 to 'talk'.
   pinMode(PIN_23, OUTPUT);
-  // Signal to HeadFacialDetection to permit control of dome.
-/*  pinMode(XXXXXX, OUTPUT);                  */
   // Signal from HeadFacialDetection for left Dome movement
 /*  pinMode(XXXXXX, INPUT);                   */
   // Signal from HeadFacialDetection for right Dome movement

@@ -15,7 +15,13 @@
 
 -----------------------------------------------------------------------------*/
 
-//TODO: Implement pinout description
+/*-----------------------------------------------------------------------------
+HeadFacialDetection Pinout
+
+  PIN 1  --> SIGNAL OUTPUT TO HeadAudioBoard to turn dome left
+  PIN XX --> SIGNAL OUTPUT TO HeadAudioBoard to turn dome right
+
+-----------------------------------------------------------------------------*/
 
 /*-------------------------------------------------------------------
         INCLUDES
