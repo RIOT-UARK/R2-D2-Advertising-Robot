@@ -1,7 +1,7 @@
 R2D2 SOFTWARE TICKET LIST:
 
-[HIGH PRIORITY BUG]: When not in normal drive mode, drive motors drive forwards
 [HIGH PRIORITY BUG]: Dome motor not working. Only sometimes will spin to the right when commanded
+[HIGH PRIORITY BUG]: HeadAudioBoard only sends 'talk fast' signal for a fraction of a second, rather than based on its timing.
 
 [ALL] BETTER DOCUMENT PINOUTS 
 [ALL] Remove unused variables

@@ -115,7 +115,6 @@ void setup() {
 
 void loop() {
   time = millis();
-
   // If delayTime set in frontTalk has passed and PIN_7 is LOW:
   if ((time - frontDelayTime > 0) && (digitalRead(PIN_7) != HIGH)) {
     talkFastFlag = false;
