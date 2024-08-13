@@ -251,13 +251,13 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
               digitalWrite(PIN_2, LOW);
               digitalWrite(PIN_1, LOW);
             } 
-         //}
+         }
          else {
             digitalWrite(PIN_2, LOW);
             digitalWrite(PIN_1, LOW);
          }
 
-        }
+        
         
     }
     else {
