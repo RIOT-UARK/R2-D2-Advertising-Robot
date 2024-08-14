@@ -260,6 +260,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
   
   }
+
 }
 
 
@@ -367,8 +368,6 @@ void setup() {
 void loop() {
   player.copy();
   kit.processActions();
-//Serial.println(digitalRead(23));
-
   curTime = millis();
 
   // If we are in AI Cam Control mode
@@ -407,8 +406,9 @@ void loop() {
   }
 
   // If it is time to turn the 'talk' signal off
-  if ( LEDTalkSignal && ( curTime - LEDTalkTimeout > 0 ) ) {
+  if ( LEDTalkSignal && ( (long)(curTime - LEDTalkTimeout) > 0 ) ) {
     digitalWrite(PIN_23, LOW);
     LEDTalkSignal = false;
   }
+
 }
