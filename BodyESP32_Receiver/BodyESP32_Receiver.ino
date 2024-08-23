@@ -121,11 +121,10 @@ unsigned long curTime = 0;                      /* Current time, in ms          
 // Ints to represent controller's stick positions, 3 way switch, and potentiometer values
 int ch2Value, ch3Value, ch5Value, ch6Value, ch9Value;
 
-//CAUTION: CH1VALUE AND CH4VALUE USED TO BE INTS. ENSURE THIS DOESN'T CAUSE
-//UNFORSEEN CONSEQUENCES
 short ch1Value, ch4Value;
 unsigned long lastCh1ValueSent = 0;
 unsigned long lastCh4ValueSent = 0;
+
 //Outgoing Serial 'packet' for communication with Secondary Motor Driver
 byte outgoingSerial[3];
 
@@ -136,7 +135,7 @@ bool ch7Value;
 bool ch8Value;
 bool ch10Value;
 
-int LeftDriveValue, RightDriveValue;            /* Ints to be sent to Motor Controllers       */
+int LeftDriveValue, RightDriveValue;            /* Ints to be sent to Drive Motor Controllers */
 
 unsigned long lastDriveValueSent = 0;           /* Last time a drive value was sent           */
 
@@ -144,19 +143,20 @@ unsigned long lastEmoteSent = 0;                /* Last time an emote was sent t
 
 unsigned int curEmoteMode = NO_EMOTE;           /* Current Emote mode                         */
 
+bool AICamMode;                                 /* Whether or not we're in AICamMode          */
+
 unsigned long lastAICamControlPktSent = 0;      /* Last time we sent an AICam Control packet. */
 
 unsigned long lastAICamPacketReceived = 0;      /* Last time we received an AICam Driving packet */
 
 bool projectorBulb = false;                     /* Controls mosfet for projector bulb         */
+
 unsigned long lastProjectorStatus = 0;          /* Last time projector was toggled            */
 
 // Control signals for pamphlet dispenser
 bool pamphletDispenser = false;
 bool turnPDOnFlag = false;
 unsigned long lastPamphletDispenserStatus = 0;
-
-bool AICamMode;                                 /* Whether or not we're in AICamMode          */
 
 // ESP-NOW broadcast address - Broadcast as WAN
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};

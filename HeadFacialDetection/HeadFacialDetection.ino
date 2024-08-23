@@ -19,7 +19,7 @@
 HeadFacialDetection Pinout
 
   PIN 1  --> SIGNAL OUTPUT TO HeadAudioBoard to turn dome left
-  PIN 2 --> SIGNAL OUTPUT TO HeadAudioBoard to turn dome right
+  PIN 2  --> SIGNAL OUTPUT TO HeadAudioBoard to turn dome right
 
 -----------------------------------------------------------------------------*/
 
@@ -234,8 +234,6 @@ void FDPostProcess(std::vector<FaceDetectionResult> results) {
           Serial.println(results[maxIndex].xMax());
           */
 
-         // TODO: Remove these comments when I choose 2 new pins
-         //if (digitalRead(XXXXXX) == HIGH) {
             // If closest face is to the right -> turn right
             if (faceMiddle > 0.63) {
               digitalWrite(PIN_2, HIGH);

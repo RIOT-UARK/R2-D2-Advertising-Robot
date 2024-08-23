@@ -225,12 +225,10 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         break;
       case AI_CAM_CONTROL_ON:
         AICamControl = true;
-        //digitalWrite(PIN_XX, HIGH); TODO: NEED TO ASSIGN THIS PIN
         lastAICamControlPkt = curTime;
         break;
       case AI_CAM_CONTROL_OFF:
         AICamControl = false;
-        //digitalWrite(PIN_XX, LOW); TODO: NEED TO ASSIGN THIS PIN
         lastAICamControlPkt = curTime;
         break;
       case TRIGGER_EMOTE_XXXXX1:
@@ -374,12 +372,12 @@ void loop() {
   if (AICamControl) {
 
     // If receiving command to turn left from AICam
-    if ((digitalRead(PIN_18) == HIGH) && (digitalRead(PIN_XX) == LOW)) {    //****TODO***** ASSIGN THESE PIN_XX's
+    if ((digitalRead(PIN_18) == HIGH) && (digitalRead(PIN_22) == LOW)) {    //****TODO***** ASSIGN THESE PIN_XX's
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_LEFT;
     }
     // If receiving command to turn right from AICam
-    else if ((digitalRead(PIN_22) == LOW) && (digitalRead(PIN_XX) == HIGH)) {
+    else if ((digitalRead(PIN_18) == LOW) && (digitalRead(PIN_22) == HIGH)) {
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_RIGHT;
     }

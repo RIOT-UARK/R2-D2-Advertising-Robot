@@ -40,8 +40,8 @@ Arduino Uno -> Pamphlet Dispenser Door Servo Motor
 
   Pin 9 -> Orange Wire
 
-  Using an Arduino Uno was necessary because the PROK Motor controller would only work with the Uno's 5V logic,
-  and not an ESP32's 3V logic.
+  Using an Arduino Uno was necessary because the PROK Motor controller would only
+  work with the Uno's 5V logic, and not an ESP32's 3V logic.
 --------------------------------------------------------------------------------*/
 
 // TODO: Implement Encoder Readings
@@ -58,19 +58,19 @@ Arduino Uno -> Pamphlet Dispenser Door Servo Motor
         GLOBAL VARIABLES
 --------------------------------------------------------------------*/
 
-unsigned long curTime;            /* current time, time since boot in ms           */
-unsigned long timeOfLastRec;      /* Time since last drive signal received         */
-short driveValue;                 /* Drive signal to send to dome motor controller */
-unsigned long timeOfLastPam = 0;  /* Time of last pamphlet staging event           */
-int stage = 0;                    /* Pamphlet dispenser pamphlet feeding stage     */
-char incomingSerial[3];           /* Serial communication 'packet'                 */
-unsigned short badPktCounter = 0; /* How many invalid packets have we received     */
-bool DomeMovementEnabled = true;  /* To turn off dome movement if too many bad pkts*/
+unsigned long curTime;            /* current time, time since boot in ms              */
+unsigned long timeOfLastRec;      /* Time since last drive signal received            */
+short driveValue;                 /* Drive signal to send to dome motor controller    */
+unsigned long timeOfLastPam = 0;  /* Time of last pamphlet staging event              */
+int stage = 0;                    /* Pamphlet dispenser pamphlet feeding stage        */
+char incomingSerial[3];           /* Serial communication 'packet'                    */
+unsigned short badPktCounter = 0; /* How many invalid packets have we received        */
+bool DomeMovementEnabled = true;  /* To turn off dome movement if too many bad pkts   */
 
 //bool forwardReverse = true; //true = pamphlet dispenser forward, false = backwards
 //bool pamReady = true;
 
-Servo servo;                      /* Pamphlet door servo                           */
+Servo servo;                      /* Pamphlet door servo                              */
 
 
 void emergencyDisconnect() {
@@ -96,13 +96,13 @@ void emergencyDisconnect() {
 
 void setup() {
 
-  pinMode(PIN_2, OUTPUT); /* IN1 DROK Motor controller direction */
-  pinMode(PIN_3, OUTPUT); /* ENA1DROK Motor controller PWM Speed */
-  pinMode(PIN_4, OUTPUT); /* IN2 DROK Motor controller direction */
-  pinMode(PIN_5, INPUT);  /* Signal from BodyESP32 Receiver to dispense a pamphlet */
-  pinMode(PIN_6, OUTPUT); /* ENA2                                */
-  pinMode(PIN_7, OUTPUT); /* IN3                                 */
-  pinMode(PIN_8, OUTPUT); /* IN4                                 */
+  pinMode(PIN_2, OUTPUT); /* IN1 DROK Motor controller direction                    */
+  pinMode(PIN_3, OUTPUT); /* ENA1DROK Motor controller PWM Speed                    */
+  pinMode(PIN_4, OUTPUT); /* IN2 DROK Motor controller direction                    */
+  pinMode(PIN_5, INPUT);  /* Signal from BodyESP32 Receiver to dispense a pamphlet  */
+  pinMode(PIN_6, OUTPUT); /* ENA2                                                   */
+  pinMode(PIN_7, OUTPUT); /* IN3                                                    */
+  pinMode(PIN_8, OUTPUT); /* IN4                                                    */
   //pinMode(9, OUTPUT); //Servo Motor
 
   Serial.begin(115200);
@@ -146,12 +146,13 @@ void loop() {
     else if (driveValue == SERIAL_PKT_EMERGENCY_DISCONNECT) {
       emergencyDisconnect();
     }
+    /* If we receive a lot of bad data, we disable dome movement for safety purposes */
     else if (driveValue < -103 && driveValue > 103) {
       badPktCounter++;
       driveValue = 0;
 
-      if (badPktCounter >= 750) {
-        DomeMovementEnabled = false;    
+      if (badPktCounter >= 3000) {
+        DomeMovementEnabled = false;
       }
     }
   

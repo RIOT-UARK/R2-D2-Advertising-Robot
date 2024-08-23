@@ -69,38 +69,6 @@ typedef struct struct_message {
 } struct_message;
 
 /*---------------------------------------------------
-    The struct_message packet.role field contains
-    the intended purpose of each packet.
----------------------------------------------------*/
-enum PACKET_ROLE_VALUES {
-    VOLUME_HAS_CHANGED = -1,
-    PLAY_EXCITE_AUDIO,
-    PLAY_WORRIED_AUDIO,
-    PLAY_SCREAM_AUDIO,
-    PLAY_ACKNOWLEDGE_AUDIO,
-    PLAY_CHAT_AUDIO,
-    PERISCOPE_ACTION,
-    TOGGLE_PROJECTOR_BULB,
-    TRIGGER_PAMPHLET_DISPENSER_EVENT,
-
-    TRIGGER_EMOTE_XXXXX1 = 10,
-    TRIGGER_EMOTE_XXXXX2,
-    TRIGGER_EMOTE_XXXXX3,
-    TRIGGER_EMOTE_XXXXX4,
-
-    SET_SOUNDBOARD_LED_LOW = 20,
-    SET_SOUNDBOARD_LED_HIGH = 21,
-
-    AI_CAM_CONTROL_ON = 30,
-    AI_CAM_CONTROL_OFF,
-    AI_CAM_TURN_DOME_LEFT,
-    AI_CAM_TURN_DOME_RIGHT,
-    AI_CAM_NO_DOME_TURN
-
-
-};
-
-/*---------------------------------------------------
     The struct_message packet.recipient field contains
     the intended recipient of each packet
 ---------------------------------------------------*/
@@ -111,14 +79,46 @@ enum PACKET_RECIPIENTS {
 };
 
 /*---------------------------------------------------
+    The struct_message packet.role field contains
+    the intended purpose of each packet.
+---------------------------------------------------*/
+enum PACKET_ROLE_VALUES {
+    VOLUME_HAS_CHANGED = -1,                /* For BodyESP32_Receiver to communicate to HeadAudioBoard to change volume     */
+    PLAY_EXCITE_AUDIO,                      /* ControllerSoundboard -> HeadAudioBoard: Play audio                           */
+    PLAY_WORRIED_AUDIO,                     /* ControllerSoundboard -> HeadAudioBoard: Play audio                           */
+    PLAY_SCREAM_AUDIO,                      /* ControllerSoundboard -> HeadAudioBoard: Play audio                           */
+    PLAY_ACKNOWLEDGE_AUDIO,                 /* ControllerSoundboard -> HeadAudioBoard: Play audio                           */
+    PLAY_CHAT_AUDIO,                        /* ControllerSoundboard -> HeadAudioBoard: Play audio                           */
+    PERISCOPE_ACTION,                       /* Not Currently Used. Code for periscope mostly implemented though             */
+    TOGGLE_PROJECTOR_BULB,                  /* ControllerSoundboard -> BodyESP32_Receiver: Turn Projector Bulb on/off       */
+    TRIGGER_PAMPHLET_DISPENSER_EVENT,       /* ControllerSoundboard -> BodyESP32_Receiver: Dispense a pamphlet              */
+
+    TRIGGER_EMOTE_XXXXX1 = 10,              /* BodyESP32Receiver -> HeadAudioBoard: Trigger Audio Cues for Emote 1          */
+    TRIGGER_EMOTE_XXXXX2,                   /* BodyESP32Receiver -> HeadAudioBoard: Trigger Audio Cues for Emote 2          */
+    TRIGGER_EMOTE_XXXXX3,                   /* BodyESP32Receiver -> HeadAudioBoard: Trigger Audio Cues for Emote 3          */
+    TRIGGER_EMOTE_XXXXX4,                   /* BodyESP32Receiver -> HeadAudioBoard: Trigger Audio Cues for Emote 4          */
+
+    SET_SOUNDBOARD_LED_LOW = 20,            /* Unused                                                                       */
+    SET_SOUNDBOARD_LED_HIGH = 21,           /* Unused                                                                       */
+
+    AI_CAM_CONTROL_ON = 30,                 /* BodyESP32Receiver -> HeadAudioBoard: Direct AudioBoard to read commands from AICam */
+    AI_CAM_CONTROL_OFF,                     /* BodyESP32Receiver -> HeadAudioBoard: Direct AudioBoard to not read commands from AICam */
+    AI_CAM_TURN_DOME_LEFT,                  /* HeadAudioBoard -> BodyESP32Receiver: Command from AICam to turn dome left    */
+    AI_CAM_TURN_DOME_RIGHT,                 /* HeadAudioBoard -> BodyESP32Receiver: Command from AICam to turn dome right   */
+    AI_CAM_NO_DOME_TURN                     /* HeadAudioBoard -> BodyESP32Receiver: Command from AICam to stop turning      */
+
+
+};
+
+/*---------------------------------------------------
     Enums for the custom Serial packet used to 
     communicate between BodyESP32_Receiver and
     Secondary_Motor_Driver
 ---------------------------------------------------*/
 enum SERIAL_PKT_ENUMS {
-    SERIAL_PKT_TERMINATOR   = 3,
-    SERIAL_PKT_SIZE         = 3,
-    SERIAL_PKT_EMERGENCY_DISCONNECT = -8714     /* Random number that should be utterly unachievable */
+    SERIAL_PKT_TERMINATOR   = 3,                /* Int 3 is a normally unreachable value. It is used as the packet terminator   */
+    SERIAL_PKT_SIZE         = 3,                /* Serial Packet is 3 bytes wide                                                */
+    SERIAL_PKT_EMERGENCY_DISCONNECT = -8714     /* Random number that should be utterly unachievable                            */
 };
 
 /*---------------------------------------------------
