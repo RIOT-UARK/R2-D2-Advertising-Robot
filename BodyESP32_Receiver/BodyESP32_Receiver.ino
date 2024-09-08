@@ -171,7 +171,7 @@ esp_now_peer_info_t peerInfo;
 
     OnDataRecv
 
-      Callback function when data is received
+      Callback function when ESP-NOW packet is received
 
 ----------------------------------------------------------------------*/
 
@@ -208,7 +208,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
     OnDataSent
 
-      Callback when data is sent
+      Callback function when ESP-NOW packet is sent
 
 ----------------------------------------------------------------------*/
 

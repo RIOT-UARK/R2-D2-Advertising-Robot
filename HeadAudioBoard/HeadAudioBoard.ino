@@ -104,9 +104,9 @@ AudioPlayer player(source, kit, decoder);
 
     OnDataRecv
 
-      Callback function when data is received. If packet is received
-      with AudioBoard marked as recipient, take an action based on 
-      packet contents (Either adjust volume or play an audio).
+      Callback function when ESP-NOW packet received. If packet is 
+      received with AudioBoard marked as recipient, take an action 
+      based on packet contents (Either adjust volume or play an audio).
 
 ----------------------------------------------------------------------*/
 
@@ -266,7 +266,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
     OnDataSent
 
-      Callback function when data is sent
+      Callback function when ESP-NOW packet is sent
 
 ----------------------------------------------------------------------*/
 
