@@ -111,17 +111,15 @@ void setup() {
     return;
   }
 
-
-  // TODO: I DONT THINK THIS IS A CORRECT ORDER
   /*  Button Pins, in physical order from left to right   */
-  pinMode(PIN_21, INPUT);
-  pinMode(PIN_5, INPUT);
-  pinMode(PIN_19, INPUT);
-  pinMode(PIN_18, INPUT);
   pinMode(PIN_17, INPUT);
-  pinMode(PIN_16, INPUT);
+  pinMode(PIN_18, INPUT);
   pinMode(PIN_2, INPUT);
+  pinMode(PIN_16, INPUT);
+  pinMode(PIN_19, INPUT);
+  pinMode(PIN_21, INPUT);
   pinMode(PIN_4, INPUT);
+  pinMode(PIN_5, INPUT);
 
   /*
   CURRENTLY UNUSED
@@ -149,43 +147,7 @@ void loop() {
   the audioboard to play a sound.
   -----------------------------------------*/
 
-  if ((digitalRead(PIN_21) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = PERISCOPE_ACTION;
-    packet.recipient = AUDIOBOARD;
-    debounceTime = curTime;
-    lastSend = curTime;
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  else if ((digitalRead(PIN_5) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = TRIGGER_PAMPHLET_DISPENSER_EVENT;
-    packet.recipient = BODY_ESP32_RECEIVER;
-    debounceTime = curTime;
-    lastSend = curTime;
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  else if ((digitalRead(PIN_19) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = PLAY_CHAT_AUDIO;
-    packet.recipient = AUDIOBOARD;
-    debounceTime = curTime;
-    lastSend = curTime;
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  else if ((digitalRead(PIN_18) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = PLAY_WORRIED_AUDIO;
-    packet.recipient = AUDIOBOARD;
-    debounceTime = curTime;
-    lastSend = curTime;
-    wakeModemSleep();
-    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
-  }
-
-  else if ((digitalRead(PIN_17) == HIGH) && ((curTime - debounceTime) > 750)) {
+  if ((digitalRead(PIN_17) == HIGH) && ((curTime - debounceTime) > 750)) {
     packet.role = PLAY_EXCITE_AUDIO;
     packet.recipient = AUDIOBOARD;
     debounceTime = curTime;
@@ -194,8 +156,8 @@ void loop() {
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet)); 
   }
 
-  else if ((digitalRead(PIN_16) == HIGH) && ((curTime - debounceTime) > 750)) {
-    packet.role = PLAY_ACKNOWLEDGE_AUDIO;
+  else if ((digitalRead(PIN_18) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.role = PLAY_WORRIED_AUDIO;
     packet.recipient = AUDIOBOARD;
     debounceTime = curTime;
     lastSend = curTime;
@@ -212,6 +174,33 @@ void loop() {
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
   }
 
+  else if ((digitalRead(PIN_16) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.role = PLAY_ACKNOWLEDGE_AUDIO;
+    packet.recipient = AUDIOBOARD;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+
+  else if ((digitalRead(PIN_19) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.role = PLAY_CHAT_AUDIO;
+    packet.recipient = AUDIOBOARD;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+
+  else if ((digitalRead(PIN_21) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.role = PERISCOPE_ACTION;
+    packet.recipient = AUDIOBOARD;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+
   else if ((digitalRead(PIN_4) == HIGH) && ((curTime - debounceTime) > 750)) {
     packet.role = TOGGLE_PROJECTOR_BULB;
     packet.recipient = BODY_ESP32_RECEIVER;
@@ -220,6 +209,16 @@ void loop() {
     wakeModemSleep();
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
   }
+
+  else if ((digitalRead(PIN_5) == HIGH) && ((curTime - debounceTime) > 750)) {
+    packet.role = TRIGGER_PAMPHLET_DISPENSER_EVENT;
+    packet.recipient = BODY_ESP32_RECEIVER;
+    debounceTime = curTime;
+    lastSend = curTime;
+    wakeModemSleep();
+    esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+  }
+  
   //Go into sleep mode if 15s of inactivity. Reduces power usage from constantly active WiFi
   else if (curTime - lastSend > 15000) {
     setModemSleep();
