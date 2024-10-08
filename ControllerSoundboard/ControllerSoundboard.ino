@@ -9,7 +9,7 @@
       audioboard, in order to play audio.
 
     MICROCONTROLLER:
-      ESP-32
+      ESP-32 Lolin D32
 
 -----------------------------------------------------------------------------*/
 
@@ -112,14 +112,14 @@ void setup() {
   }
 
   /*  Button Pins, in physical order from left to right   */
-  pinMode(PIN_17, INPUT);
-  pinMode(PIN_18, INPUT);
-  pinMode(PIN_2, INPUT);
-  pinMode(PIN_16, INPUT);
-  pinMode(PIN_19, INPUT);
-  pinMode(PIN_21, INPUT);
-  pinMode(PIN_4, INPUT);
-  pinMode(PIN_5, INPUT);
+  pinMode(PIN_17, INPUT_PULLDOWN);
+  pinMode(PIN_18, INPUT_PULLDOWN);
+  pinMode(PIN_2, INPUT_PULLDOWN);
+  pinMode(PIN_16, INPUT_PULLDOWN);
+  pinMode(PIN_19, INPUT_PULLDOWN);
+  pinMode(PIN_21, INPUT_PULLDOWN);
+  pinMode(PIN_4, INPUT_PULLDOWN);
+  pinMode(PIN_33, INPUT_PULLDOWN);
 
   /*
   CURRENTLY UNUSED
@@ -210,7 +210,7 @@ void loop() {
     esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
   }
 
-  else if ((digitalRead(PIN_5) == HIGH) && ((curTime - debounceTime) > 750)) {
+  else if ((digitalRead(PIN_33) == HIGH) && ((curTime - debounceTime) > 750)) {
     packet.role = TRIGGER_PAMPHLET_DISPENSER_EVENT;
     packet.recipient = BODY_ESP32_RECEIVER;
     debounceTime = curTime;
@@ -232,7 +232,7 @@ void loop() {
   Serial.print(digitalRead(19));
   Serial.print(digitalRead(21));
   Serial.print(digitalRead(4));
-  Serial.println(digitalRead(5));
+  Serial.println(digitalRead(33));
   */
   
 }
