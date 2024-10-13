@@ -53,7 +53,8 @@ enum PWM_DUTY_CYCLE_8_BIT {
 ---------------------------------------------------*/
 enum LEDC_CHANNELS {
     CHANNEL_0,
-    CHANNEL_1
+    CHANNEL_1,
+    CHANNEL_2
 };
 
 /*---------------------------------------------------

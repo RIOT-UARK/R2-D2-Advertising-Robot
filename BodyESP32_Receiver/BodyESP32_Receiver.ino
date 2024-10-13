@@ -537,16 +537,20 @@ void setup(){
   attachInterrupt(digitalPinToInterrupt(CH9), CH9Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH10), CH10Interrupt, CHANGE);
 
-//PWM OUTPUT TO CONTROL LEFT DRIVE MOTOR
+// PWM OUTPUT TO CONTROL LEFT DRIVE MOTOR
   pinMode(PIN_26, OUTPUT);
-  ledcAttachPin(PIN_26, 0);      // (pin, channel)
-  ledcSetup(CHANNEL_0, 1000, 8); // (channel, frequency, resolution)
+  ledcAttachPin(PIN_26, CHANNEL_0);      // (pin, channel)
+  ledcSetup(CHANNEL_0, 1000, 8);         // (channel, frequency, resolution)
 
-//PWM OUTPUT TO CONTROL RIGHT DRIVE MOTOR
+// PWM OUTPUT TO CONTROL RIGHT DRIVE MOTOR
   pinMode(PIN_27, OUTPUT);
-  ledcAttachPin(PIN_27, 1);      // (pin, channel)
-  ledcSetup(CHANNEL_1, 1000, 8); // (channel, frequency, resolution)
+  ledcAttachPin(PIN_27, CHANNEL_1);      // (pin, channel)
+  ledcSetup(CHANNEL_1, 1000, 8);         // (channel, frequency, resolution)
 
+// PWM OUTPUT FOR PROJECTOR IRIS SHUTTER SERVO
+  pinMode(PIN_25, OUTPUT);
+  ledcAttachPin(PIN_25, CHANNEL_2);     // (pin, channel)
+  ledcSetup(CHANNEL_2, 50, 8);        // (channel, frequency, resolution)
 
  pinMode(PIN_32, OUTPUT); //Projector Bulb MOSFET Control
  pinMode(PIN_33, OUTPUT); //Pamphlet Dispenser Signal
@@ -681,13 +685,13 @@ void loop() {
           RightDriveValue = 117;
         }
         ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.          */
-        ledcWrite(1, RightDriveValue);
+        ledcWrite(1, RightDriveValue);            /* (channel, value)                        */
       }
       else {                                      /* If ch2 value is bad, send no drive   */
         LeftDriveValue = 117;
         RightDriveValue = 117;
         ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.           */
-        ledcWrite(1, RightDriveValue);
+        ledcWrite(1, RightDriveValue);            /* (channel, value)                        */
       }
 
       lastDriveValueSent = curTime;
@@ -698,7 +702,7 @@ void loop() {
     LeftDriveValue = 117;
     RightDriveValue = 117;
     ledcWrite(0, LeftDriveValue);                 /* Send pulse width to motors.             */
-    ledcWrite(1, RightDriveValue);
+    ledcWrite(1, RightDriveValue);                /* (channel, value)                        */
   }
   
   /*--------------------------------------------
@@ -858,7 +862,7 @@ void loop() {
     LeftDriveValue = 117;
     RightDriveValue = 117;
     ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.             */
-    ledcWrite(1, RightDriveValue);
+    ledcWrite(1, RightDriveValue);            // (channel, value)
     // Detach DriveValue pins
     ledcDetachPin(PIN_26);
     ledcDetachPin(PIN_27);
@@ -922,9 +926,11 @@ void loop() {
   ---------------------------------------------------------------*/
   if (projectorBulb) {
     digitalWrite(PIN_32, HIGH);
+    ledcWrite(CHANNEL_2, 255);        // (channel, value)
   }
   else {
     digitalWrite(PIN_32, LOW);
+    ledcWrite(CHANNEL_2, 0);          // (channel, value)
   }
 
   /*---------------------------------------------------------------

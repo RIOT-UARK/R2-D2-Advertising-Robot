@@ -310,7 +310,7 @@ void setup() {
   // Signal to HeadLEDController for R2D2 to 'talk'.
   pinMode(PIN_23, OUTPUT);
   // Signal from HeadFacialDetection for left Dome movement
-  pinMode(PIN_18, INPUT);
+  pinMode(PIN_19, INPUT);
   // Signal from HeadFacialDetection for right Dome movement
   pinMode(PIN_22, INPUT);
 
@@ -372,12 +372,12 @@ void loop() {
   if (AICamControl) {
 
     // If receiving command to turn left from AICam
-    if ((digitalRead(PIN_18) == HIGH) && (digitalRead(PIN_22) == LOW)) {    //****TODO***** ASSIGN THESE PIN_XX's
+    if ((digitalRead(PIN_19) == HIGH) && (digitalRead(PIN_22) == LOW)) {    //****TODO***** ASSIGN THESE PIN_XX's
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_LEFT;
     }
     // If receiving command to turn right from AICam
-    else if ((digitalRead(PIN_18) == LOW) && (digitalRead(PIN_22) == HIGH)) {
+    else if ((digitalRead(PIN_19) == LOW) && (digitalRead(PIN_22) == HIGH)) {
         packet.recipient = BODY_ESP32_RECEIVER;
         packet.role      = AI_CAM_TURN_DOME_RIGHT;
     }

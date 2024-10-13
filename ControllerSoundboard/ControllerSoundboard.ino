@@ -99,8 +99,8 @@ void setup() {
     return;
   }
 
-  esp_now_register_send_cb(OnDataSent);          /* Register send callback function     */
-  esp_now_register_recv_cb(OnDataRecv);          /* Register receive callback function  */
+  esp_now_register_send_cb(OnDataSent);           /* Register send callback function     */
+  esp_now_register_recv_cb(OnDataRecv);           /* Register receive callback function  */
 
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;  
