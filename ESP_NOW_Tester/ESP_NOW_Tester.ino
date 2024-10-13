@@ -5,7 +5,7 @@
     DESCRIPTION:
       This code is not a microcontroller that is used in R2D2. This is a 
 	microcontroller that is used to capture packets sent over ESP-NOW 
-	and print them over UART to a connected computer.
+	and print them over UART to a connected computer. For debugging purposes
 
     MICROCONTROLLER:
       ESP-32
@@ -32,6 +32,9 @@ struct_message packet;
 struct_message incomingPacket;
 
 esp_now_peer_info_t peerInfo;
+
+unsigned long lastPacketSent = 0;  
+unsigned long curTime = 0;
 
 /*----------------------------------------------------------------------
 
@@ -177,8 +180,21 @@ void setup() {
     	Serial.println("Failed to add peer");
     	return;
   	}
+
+	pinMode(PIN_23, INPUT);
 }
 
 void loop() {
-	// Do nothing while waiting for packets
+	// Update time
+	curTime = millis();
+
+	// If Pin 23 is held high, spoof like we're the Body ESP-32 Receiver
+	// Telling the Head Audio Board we're in AI CAM mode
+	if (digitalRead(PIN_23) == HIGH && (curTime - lastPacketSent >= 1500)) {
+    		Serial.println("Sending: AI CAM - Control ON");
+		packet.recipient = AUDIOBOARD;
+      	packet.role = AI_CAM_CONTROL_ON;
+      	lastPacketSent = curTime;
+      	esp_now_send(broadcastAddress, (uint8_t *) &packet, sizeof(packet));
+	}
 }
