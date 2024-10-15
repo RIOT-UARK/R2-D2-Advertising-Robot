@@ -70,7 +70,8 @@ bool DomeMovementEnabled = true;  /* To turn off dome movement if too many bad p
 //bool forwardReverse = true; //true = pamphlet dispenser forward, false = backwards
 //bool pamReady = true;
 
-Servo servo;                      /* Pamphlet door servo                              */
+Servo PDservo;                      /* Pamphlet door servo                              */
+Servo IrisServo;
 
 
 void emergencyDisconnect() {
@@ -79,7 +80,8 @@ void emergencyDisconnect() {
   digitalWrite(PIN_4, LOW);
   analogWrite(PIN_3, 0);
   analogWrite(PIN_6, 0);
-  servo.detach();
+  PDservo.detach();
+  IrisServo.detach();
   
   // Enter an inescapable superloop
   while (1) {
@@ -103,12 +105,16 @@ void setup() {
   pinMode(PIN_6, OUTPUT); /* ENA2                                                   */
   pinMode(PIN_7, OUTPUT); /* IN3                                                    */
   pinMode(PIN_8, OUTPUT); /* IN4                                                    */
+  pinMode(PIN_10, INPUT);
   //pinMode(9, OUTPUT); //Servo Motor
 
   Serial.begin(115200);
 
-  servo.attach(PIN_9);
-  servo.write(0);
+  PDservo.attach(PIN_9);
+  PDservo.write(0);
+
+  IrisServo.attach(PIN_11);
+  IrisServo.write(0);
 
   delay(3500); //Delay because the ESP32 will spew garbage over serial upon startup.
 }
@@ -166,11 +172,22 @@ void loop() {
     analogWrite(PIN_3, 0);
   }
 
+/*--------------------------------------------------------------------------------------
+  IRIS SERVO
+--------------------------------------------------------------------------------------*/
+
+  if (digitalRead(PIN_10) == HIGH) {
+    IrisServo.write(255);
+  }
+  else {
+    IrisServo.write(0);
+  }
+
   /*
   if (pamReady && digitalRead(5) == HIGH && (millis() - timeOfLastPam > 1000)) { //When dispense signal first received
     digitalWrite(7, LOW);
     digitalWrite(8, HIGH);
-    servo.write(90);
+    PDservo.write(90);
     analogWrite(6, 60);
     timeOfLastPam = millis();
     pamReady = false;
@@ -178,7 +195,7 @@ void loop() {
   else if (millis() - timeOfLastPam > 1500 && millis() - timeOfLastPam < 3300) { //Reverse Motors to dispense pamphlet
     digitalWrite (7, HIGH);
     digitalWrite (8, LOW);
-    servo.write(90);
+    PDservo.write(90);
     analogWrite(6, 60);
   }
   else if (millis() - timeOfLastPam > 3300 && millis() - timeOfLastPam < 5000) { //Wait until at least 5 seconds have passed
@@ -187,7 +204,7 @@ void loop() {
     analogWrite(6, 0);
   }
   else if (!pamReady && digitalRead(5) == HIGH && (millis() - timeOfLastPam > 5000)) {
-    servo.write(0);
+    PDservo.write(0);
     timeOfLastPam = millis();
     pamReady = true;
   }
@@ -206,7 +223,7 @@ void loop() {
   else if (stage == LOAD_PAMPHLET_OPEN_DOOR) {    // Signal to print has been received. Load a pamphlet in paper feeder (move motor in one direction) and open the door
     digitalWrite(PIN_7, LOW);         // Motor Controller feed motor direction
     digitalWrite(PIN_8, HIGH);    
-    servo.write(90);                  // Pamphlet door servo position
+    PDservo.write(90);                  // Pamphlet door servo position
     analogWrite(PIN_6, 80);           // PWM Speed signal to pamphlet feed motor
     if (curTime - timeOfLastPam > 1500) {
       stage++;
@@ -215,7 +232,7 @@ void loop() {
   else if (stage == FEED_PAPER_OUT) {             // Feed the paper out of the pamphlet dispenser.
     digitalWrite (PIN_7, HIGH);       // Motor Controller feed motor direction
     digitalWrite (PIN_8, LOW);
-    servo.write(90);              // Pamphlet door servo position
+    PDservo.write(90);              // Pamphlet door servo position
     analogWrite(PIN_6, 80);           // PWM Speed signal to pamphlet feed motor
     if (curTime - timeOfLastPam > 3500) {
       stage++;
@@ -231,13 +248,13 @@ void loop() {
   }
   else if (stage == WAIT_FOR_USER_INPUT) {        // Wait for an additional button press from the controller to signal to close the door
     if (digitalRead(PIN_5) == HIGH) {
-      servo.write(0);             // Pamphlet door servo position
+      PDservo.write(0);             // Pamphlet door servo position
       stage++;
       timeOfLastPam = curTime;
     }
   }
   else if (stage == CLOSE_DOOR_END_CYCLE) {      //Wait for the door to close and go back to stage 0: waiting for another pamphlet dispensing command
-    servo.write(0);               // Pamphlet door servo position
+    PDservo.write(0);               // Pamphlet door servo position
     if (curTime - timeOfLastPam > 1100) {
       stage = DOOR_CLOSED_PD_READY;
       timeOfLastPam = curTime;

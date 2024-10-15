@@ -547,13 +547,13 @@ void setup(){
   ledcAttachPin(PIN_27, CHANNEL_1);      // (pin, channel)
   ledcSetup(CHANNEL_1, 1000, 8);         // (channel, frequency, resolution)
 
-// PWM OUTPUT FOR PROJECTOR IRIS SHUTTER SERVO
+/*// PWM OUTPUT FOR PROJECTOR IRIS SHUTTER SERVO
   pinMode(PIN_25, OUTPUT);
   ledcAttachPin(PIN_25, CHANNEL_2);     // (pin, channel)
-  ledcSetup(CHANNEL_2, 50, 8);        // (channel, frequency, resolution)
-
- pinMode(PIN_32, OUTPUT); //Projector Bulb MOSFET Control
- pinMode(PIN_33, OUTPUT); //Pamphlet Dispenser Signal
+  ledcSetup(CHANNEL_2, 50, 8);        // (channel, frequency, resolution) */
+ pinMode(PIN_25, OUTPUT); // Iris Shutter Signal
+ pinMode(PIN_32, OUTPUT); // Projector Bulb MOSFET Control
+ pinMode(PIN_33, OUTPUT); // Pamphlet Dispenser Signal
 }
 
 /*----------------------------------------------------------------------
@@ -926,11 +926,13 @@ void loop() {
   ---------------------------------------------------------------*/
   if (projectorBulb) {
     digitalWrite(PIN_32, HIGH);
-    ledcWrite(CHANNEL_2, 255);        // (channel, value)
+    //ledcWrite(CHANNEL_2, 255);        // (channel, value)
+    digitalWrite(PIN_25, HIGH);
   }
   else {
     digitalWrite(PIN_32, LOW);
-    ledcWrite(CHANNEL_2, 0);          // (channel, value)
+    //ledcWrite(CHANNEL_2, 0);          // (channel, value)
+    digitalWrite(PIN_25, LOW);
   }
 
   /*---------------------------------------------------------------
