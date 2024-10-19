@@ -35,6 +35,7 @@ Arduino Uno -> ESP32 Receiver Board
 
   RX(PIN 0) -> Pin TX 
   Pin 5 -> Pin 33
+  Pin 10 -> Pin 25
 
 Arduino Uno -> Pamphlet Dispenser Door Servo Motor
 
@@ -105,8 +106,7 @@ void setup() {
   pinMode(PIN_6, OUTPUT); /* ENA2                                                   */
   pinMode(PIN_7, OUTPUT); /* IN3                                                    */
   pinMode(PIN_8, OUTPUT); /* IN4                                                    */
-  pinMode(PIN_10, INPUT);
-  //pinMode(9, OUTPUT); //Servo Motor
+  pinMode(PIN_10, INPUT); /* Signal from BodyESP32 Rec. to toggle projector shutter */
 
   Serial.begin(115200);
 
@@ -221,40 +221,40 @@ void loop() {
     }
   }
   else if (stage == LOAD_PAMPHLET_OPEN_DOOR) {    // Signal to print has been received. Load a pamphlet in paper feeder (move motor in one direction) and open the door
-    digitalWrite(PIN_7, LOW);         // Motor Controller feed motor direction
+    digitalWrite(PIN_7, LOW);                       // Motor Controller feed motor direction
     digitalWrite(PIN_8, HIGH);    
-    PDservo.write(90);                  // Pamphlet door servo position
-    analogWrite(PIN_6, 80);           // PWM Speed signal to pamphlet feed motor
+    PDservo.write(90);                              // Pamphlet door servo position
+    analogWrite(PIN_6, 80);                         // PWM Speed signal to pamphlet feed motor
     if (curTime - timeOfLastPam > 1500) {
       stage++;
     }
   }
   else if (stage == FEED_PAPER_OUT) {             // Feed the paper out of the pamphlet dispenser.
-    digitalWrite (PIN_7, HIGH);       // Motor Controller feed motor direction
-    digitalWrite (PIN_8, LOW);
-    PDservo.write(90);              // Pamphlet door servo position
-    analogWrite(PIN_6, 80);           // PWM Speed signal to pamphlet feed motor
+    digitalWrite (PIN_7, HIGH);                     // Motor Controller feed motor direction
+    digitalWrite (PIN_8, LOW);              
+    PDservo.write(90);                              // Pamphlet door servo position
+    analogWrite(PIN_6, 80);                         // PWM Speed signal to pamphlet feed motor
     if (curTime - timeOfLastPam > 3500) {
       stage++;
     }
   }
   else if (stage == PAPER_IS_OUT_WAIT) {          // Stop the paper feeder motor when the paper is just about out of the dispenser.
-    digitalWrite(PIN_7, LOW);         // Motor Controller feed motor direction
-    digitalWrite(PIN_8, LOW);
-    analogWrite(PIN_6, 0);            // PWM Speed signal to pamphlet feed motor
+    digitalWrite(PIN_7, LOW);                       // Motor Controller feed motor direction
+    digitalWrite(PIN_8, LOW);             
+    analogWrite(PIN_6, 0);                          // PWM Speed signal to pamphlet feed motor
     if (curTime - timeOfLastPam > 5000) {
       stage++;
     }
   }
   else if (stage == WAIT_FOR_USER_INPUT) {        // Wait for an additional button press from the controller to signal to close the door
     if (digitalRead(PIN_5) == HIGH) {
-      PDservo.write(0);             // Pamphlet door servo position
+      PDservo.write(0);                             // Pamphlet door servo position
       stage++;
       timeOfLastPam = curTime;
     }
   }
   else if (stage == CLOSE_DOOR_END_CYCLE) {      //Wait for the door to close and go back to stage 0: waiting for another pamphlet dispensing command
-    PDservo.write(0);               // Pamphlet door servo position
+    PDservo.write(0);                             // Pamphlet door servo position
     if (curTime - timeOfLastPam > 1100) {
       stage = DOOR_CLOSED_PD_READY;
       timeOfLastPam = curTime;

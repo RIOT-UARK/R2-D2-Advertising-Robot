@@ -1,21 +1,17 @@
 R2D2 SOFTWARE TICKET LIST:
 
-[HIGH PRIORITY BUG] (Likely BodyESP32_Receiver) Dome Facial detection drive values need tuned. Then Facial detection needs validated/tested
-[HIGH PRIORITY HW ISSUE] Soundboard Controller Voltage too low! Need to step up input to ESP32.
 [HeadAudioBoard]/[BodyESP32_Receiver] Write and tune emote functions for emotes 1, 3, and 4
 
-[ALL] BETTER DOCUMENT PINOUTS 
 [All] Perhaps make configurable gain values in R2D2_LIB. E.g: stick dead zone, motor drive speed, etc.
 [All] Investigate and confirm behavior if Controller dies.
 [All] More thoroughly verify Emergency Disconnect Mode
 
 [HeadFacialDetection] Cut out all of the OSD drawing fat.
 
+[BodyESP32_Receiver] Occasional random audio (or subset of audio) while in AI Cam mode.
 [BodyESP32_Receiver] HIGH PRIORITY: ESP32 spews garbage over serial on startup. You can connect Pin 15 to ground to prevent this, or we can investigate a better/safer way to communicate with secondary motor driver
 [3-Byte Serial Transmission]: Arduino Uno can handle ~500Hz update rate while unburdened. Targeting 100Hz.
 [BodyESP32_Receiver] Ensure that channel2 value of ~255 is achievable
-
-[ControllerSoundboard] Get correct pin order for buttons from left to right
 
 [HeadLEDController] LOW PRIORITY Implement periscope
 [HeadLEDController] LOW PRIORITY: Reimplement  back psi fading w/ improvements
@@ -26,10 +22,6 @@ R2D2 SOFTWARE TICKET LIST:
 [Secondary_Motor_Driver] Consider decreasing dead zone size
 
 [TEST] Test Emergency Disconnect
-[TEST] Test New Serial Connection Protocol
 [TEST] Test Emotes
-[TEST] Test LED Flashing
-
-[Code Review] AI CAM Mode interaction
 
 [Code Review] HeadLEDController. Was previously having issues where front Psi light would flash incredibly quickly.

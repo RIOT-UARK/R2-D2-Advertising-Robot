@@ -22,9 +22,9 @@
 HeadAudioBoard Pinout
 
   PIN 23 --> SIGNAL OUTPUT FOR 'TALK FAST' flag to HeadLEDController Pin 7 
-  PIN 18 --> SIGNAL INPUT FROM HeadFacialDetection Pin 1 to turn dome left
+  PIN 19 --> SIGNAL INPUT FROM HeadFacialDetection Pin 1 to turn dome left
   PIN 22 --> SIGNAL INPUT FROM HeadFacialDetection Pin 2 to turn dome right
-  PIN XX --> SIGNAL OUTPUT FOR PERISCOPE COMMAND flag to HeadLEDController Pin XX
+  PIN XX --> SIGNAL OUTPUT FOR PERISCOPE COMMAND flag to HeadLEDController Pin XX *NOT USED*
 
 -----------------------------------------------------------------------------*/
 

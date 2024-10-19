@@ -22,6 +22,7 @@
 TODO: Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc. 
 
 BodyESP32Receiver to Secondary Motor Controller pinout
+  PIN 25 --> PIN 10, Projector Shutter Signal
   PIN 33 --> PIN 5, Dispense Pamphlet signal
   RX     --> TX ON ARDUINO NANO (HOPEFULLY I WILL CHANGE THIS FROM SERIAL COMM TO smthing else)
 
@@ -547,10 +548,6 @@ void setup(){
   ledcAttachPin(PIN_27, CHANNEL_1);      // (pin, channel)
   ledcSetup(CHANNEL_1, 1000, 8);         // (channel, frequency, resolution)
 
-/*// PWM OUTPUT FOR PROJECTOR IRIS SHUTTER SERVO
-  pinMode(PIN_25, OUTPUT);
-  ledcAttachPin(PIN_25, CHANNEL_2);     // (pin, channel)
-  ledcSetup(CHANNEL_2, 50, 8);        // (channel, frequency, resolution) */
  pinMode(PIN_25, OUTPUT); // Iris Shutter Signal
  pinMode(PIN_32, OUTPUT); // Projector Bulb MOSFET Control
  pinMode(PIN_33, OUTPUT); // Pamphlet Dispenser Signal
