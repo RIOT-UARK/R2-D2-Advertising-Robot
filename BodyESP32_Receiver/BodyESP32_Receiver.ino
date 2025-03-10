@@ -70,6 +70,9 @@ BodyESP32Receiver to Projector Pinout
 #define CH9   PIN_22
 #define CH10  PIN_23
 
+// Make this a value between 0.0 and 1.0
+#define GLOBAL_DRIVE_SPEED  1.0
+
 /*-------------------------------------------------------------------
         GLOBAL VARIABLES
 --------------------------------------------------------------------*/
@@ -670,12 +673,12 @@ void loop() {
       if (ch2Value > -2 && ch2Value < 256) {      /* if ch2 value in reasonable range     */
 
         if (abs(ch1Value) > 12) {                 /* if ch1 value is outside of deadzone  */
-          LeftDriveValue = ch2Value + (float(ch1Value) * 0.1);
-          RightDriveValue = ch2Value - (float(ch1Value) * 0.1);
+          LeftDriveValue = ch2Value + (float(ch1Value) * 0.1) * GLOBAL_DRIVE_SPEED;
+          RightDriveValue = ch2Value - (float(ch1Value) * 0.1) * GLOBAL_DRIVE_SPEED;
         }
         else if (abs(ch2Value) > 12 ) {           /* if ch2 is outsize of deadzone        */
-          LeftDriveValue = ch2Value;
-          RightDriveValue = ch2Value;
+          LeftDriveValue = ch2Value * GLOBAL_DRIVE_SPEED;
+          RightDriveValue = ch2Value * GLOBAL_DRIVE_SPEED;
         }
         else {                                    /* If both sticks in deadzone           */
           LeftDriveValue = 117;
