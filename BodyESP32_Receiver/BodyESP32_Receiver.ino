@@ -19,16 +19,15 @@
 -----------------------------------------------------------------------------*/
 
 /*
-TODO: Implement the following modes controlled by Switches 7-10: Drive, Dome rotation, emote, etc. 
 
 BodyESP32Receiver to Secondary Motor Controller pinout
-  PIN 25 --> PIN 10, Projector Shutter Signal
-  PIN 33 --> PIN 5, Dispense Pamphlet signal
-  RX     --> TX ON ARDUINO NANO (HOPEFULLY I WILL CHANGE THIS FROM SERIAL COMM TO smthing else)
+  PIN 33 --> PIN 10, Projector Shutter Signal
+  PIN 32 --> PIN 5, Dispense Pamphlet signal
+  RX     --> TX ON ARDUINO NANO
 
 BodyESP32Receiver to Drive Motor Controller pinout
-  PIN 26 --> SIGNAL INPUT FOR L Side of Drive Motor Controller (White Wire)
-  PIN 27 --> SIGNAL INPUT FOR R Side of Drive Motor Controller (2.54 dupont labelled 'S')
+  PIN 34 --> SIGNAL INPUT FOR L Side of Drive Motor Controller (White Wire)
+  PIN 39 --> SIGNAL INPUT FOR R Side of Drive Motor Controller (2.54 dupont labelled 'S')
 
 BodyESP32Receiver to RC Receiver pinout
   PIN 13 --> Channel 1
@@ -43,7 +42,7 @@ BodyESP32Receiver to RC Receiver pinout
   PIN 23 --> Channel 10
 
 BodyESP32Receiver to Projector Pinout
-  PIN 32 --> Projector Bulb MOSTFET
+  PIN 35 --> Projector Bulb MOSTFET
 */
 
 /*-------------------------------------------------------------------
@@ -59,16 +58,16 @@ BodyESP32Receiver to Projector Pinout
 --------------------------------------------------------------------*/
 
 // Reciever to ESP32 pinout
-#define CH1   PIN_13
-#define CH2   PIN_4
-#define CH3   PIN_16
-#define CH4   PIN_17
-#define CH5   PIN_5
-#define CH6   PIN_18
-#define CH7   PIN_19
-#define CH8   PIN_21
-#define CH9   PIN_22
-#define CH10  PIN_23
+#define CH1   PIN_23
+#define CH2   PIN_22
+#define CH3   PIN_21
+#define CH4   PIN_19
+#define CH5   PIN_18
+#define CH6   PIN_4
+#define CH7   PIN_13
+#define CH8   PIN_27
+#define CH9   PIN_26
+#define CH10  PIN_25
 
 // Make this a value between 0.0 and 1.0
 #define GLOBAL_DRIVE_SPEED  1.0
@@ -77,9 +76,14 @@ BodyESP32Receiver to Projector Pinout
         GLOBAL VARIABLES
 --------------------------------------------------------------------*/
 
-// Variables for interrupt functions for timing PWM signals.
-// Sadly, you cant pass arguments in to interrupt functions, so I have to have
-// different global variables and interrupt functions for each pin.
+/*-------------------------------------------------------------------
+Variables for interrupt functions for timing PWM signals.
+Sadly, you cant pass arguments in to interrupt functions, so I have to have
+different global variables and interrupt functions for each pin.
+
+I implement my own PWM interrupt functions here because the builtin
+Arduino PWM pulseIn() functions are blocking functions.
+--------------------------------------------------------------------*/
 volatile unsigned long    CH1PulseBegin = 0;
 volatile unsigned long    CH1PulseEnd = 0;
 volatile bool             CH1NewPulseDurAvailable = false;
@@ -489,7 +493,7 @@ void sendSerialPacket(short valToSend) {
  
 void setup(){
   // Set up serial monitor
-  Serial.begin(115200);
+  Serial.begin(115200, SERIAL_8N1, 1, 3);
 
     WiFi.mode(WIFI_STA);
 
@@ -516,7 +520,6 @@ void setup(){
   // Set end terminator of Serial 'packet.'
   // This value should NEVER be changed.
   outgoingSerial[2] = SERIAL_PKT_TERMINATOR; 
-
   // Set all pins as inputs
   pinMode(CH1, INPUT);
   pinMode(CH2, INPUT);
@@ -542,18 +545,18 @@ void setup(){
   attachInterrupt(digitalPinToInterrupt(CH10), CH10Interrupt, CHANGE);
 
 // PWM OUTPUT TO CONTROL LEFT DRIVE MOTOR
-  pinMode(PIN_26, OUTPUT);
-  ledcAttachPin(PIN_26, CHANNEL_0);      // (pin, channel)
+  pinMode(PIN_34, OUTPUT);
+  ledcAttachPin(PIN_34, CHANNEL_0);      // (pin, channel)
   ledcSetup(CHANNEL_0, 1000, 8);         // (channel, frequency, resolution)
 
 // PWM OUTPUT TO CONTROL RIGHT DRIVE MOTOR
-  pinMode(PIN_27, OUTPUT);
-  ledcAttachPin(PIN_27, CHANNEL_1);      // (pin, channel)
+  pinMode(PIN_39, OUTPUT);
+  ledcAttachPin(PIN_39, CHANNEL_1);      // (pin, channel)
   ledcSetup(CHANNEL_1, 1000, 8);         // (channel, frequency, resolution)
 
- pinMode(PIN_25, OUTPUT); // Iris Shutter Signal
- pinMode(PIN_32, OUTPUT); // Projector Bulb MOSFET Control
- pinMode(PIN_33, OUTPUT); // Pamphlet Dispenser Signal
+ pinMode(PIN_33, OUTPUT); // Iris Shutter Signal
+ pinMode(PIN_35, OUTPUT); // Projector Bulb MOSFET Control
+ pinMode(PIN_32, OUTPUT); // Pamphlet Dispenser Signal
 }
 
 /*----------------------------------------------------------------------
@@ -864,8 +867,8 @@ void loop() {
     ledcWrite(0, LeftDriveValue);             /* Send pulse width to motors.             */
     ledcWrite(1, RightDriveValue);            // (channel, value)
     // Detach DriveValue pins
-    ledcDetachPin(PIN_26);
-    ledcDetachPin(PIN_27);
+    ledcDetachPin(PIN_34);
+    ledcDetachPin(PIN_39);
 
     detachInterrupt(CH1);
     detachInterrupt(CH2);
@@ -924,17 +927,18 @@ void loop() {
   /*---------------------------------------------------------------
   If projectorBulb == true, close MOSFET switch to turn on bulb.
   ---------------------------------------------------------------*/
+  /*
   if (projectorBulb) {
-    digitalWrite(PIN_32, HIGH);
+    digitalWrite(PIN_35, HIGH);
     //ledcWrite(CHANNEL_2, 255);        // (channel, value)
-    digitalWrite(PIN_25, HIGH);
+    digitalWrite(PIN_33, HIGH);
   }
   else {
-    digitalWrite(PIN_32, LOW);
+    digitalWrite(PIN_35, LOW);
     //ledcWrite(CHANNEL_2, 0);          // (channel, value)
-    digitalWrite(PIN_25, LOW);
+    digitalWrite(PIN_33, LOW);
   }
-
+*/
   /*---------------------------------------------------------------
    Send projector status to soundboard every 5 seconds
    Controls LED status indicator on controller soundboard
@@ -957,12 +961,12 @@ void loop() {
   which handles driving PD motor
   --------------------------------------------*/
   if (pamphletDispenser && turnPDOnFlag && (curTime - lastPamphletDispenserStatus > 1000)) {
-    digitalWrite(PIN_33, HIGH);
+    digitalWrite(PIN_35, HIGH);
     lastPamphletDispenserStatus = curTime;
     turnPDOnFlag = false;
   }
   else if (pamphletDispenser && !turnPDOnFlag && (curTime - lastPamphletDispenserStatus > 1000)) {
-    digitalWrite(PIN_33, LOW);
+    digitalWrite(PIN_35, LOW);
     pamphletDispenser = false;
   }
 
@@ -972,9 +976,10 @@ void loop() {
 
  //Serial.println(projectorBulb);
   //Serial.println(millis() - time);
+  /*
   //Room for 2 more 'modes' 
   // Print to Serial Monitor
- /*  Serial.print("Ch1: ");
+  Serial.print("Ch1: ");
   Serial.print(ch1Value);
   Serial.print(" | Ch2: ");
   Serial.print(ch2Value);
@@ -993,6 +998,6 @@ void loop() {
   Serial.print(" | Ch9: ");
   Serial.print(ch9Value);
   Serial.print(" | Ch10: ");
-  Serial.println(ch10Value); */
-  
+  Serial.println(ch10Value);
+  */
 }
